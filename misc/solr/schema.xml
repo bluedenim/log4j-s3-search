@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+<schema name="S3 logger schema" version="1.1">
+   <fieldtype name="string"  class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+   <fieldtype name="tdate"  class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
+   <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+   <!-- A text field with defaults appropriate for English: it
+     tokenizes with StandardTokenizer, removes English stop words
+     (lang/stopwords_en.txt), down cases, protects words from protwords.txt, and
+     finally applies Porter's stemming.  The query time analyzer
+     also applies synonyms from synonyms.txt. -->
+   <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <!-- in this example, we will only use synonyms at query time
+        <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        -->
+        <!-- Case insensitive stop word removal.
+          add enablePositionIncrements=true in both the index and query
+          analyzers to leave a 'gap' for more accurate phrase queries.
+        -->
+        <filter class="solr.StopFilterFactory"
+            ignoreCase="true"
+            words="lang/stopwords_en.txt"
+            enablePositionIncrements="true"
+            />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.EnglishPossessiveFilterFactory"/>
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
+        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        -->
+        <filter class="solr.PorterStemFilterFactory"/>
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.StopFilterFactory"
+            ignoreCase="true"
+            words="lang/stopwords_en.txt"
+            enablePositionIncrements="true"
+            />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.EnglishPossessiveFilterFactory"/>
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <!-- Optionally you may want to use this less aggressive stemmer instead of PorterStemFilterFactory:
+        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        -->
+        <filter class="solr.PorterStemFilterFactory"/>
+      </analyzer>
+   </fieldType>
+
+   <!-- general -->
+   <field name="id"          type="string"   indexed="true"  stored="true"  multiValued="false" required="true"/>
+   <field name="timestamp"   type="tdate"    indexed="true"  stored="true"  multiValued="false" />
+   <field name="type"        type="string"   indexed="true"  stored="true"  multiValued="false" />
+   <field name="hostname"    type="string"   indexed="true"  stored="true"  multiValued="false" />
+   <field name="offset"      type="long"     indexed="false" stored="true" />
+   <field name="thread_name" type="string"   indexed="true"  stored="true"  multiValued="false" />
+   <field name="logger"      type="string"   indexed="true"  stored="true"  multiValued="false" />
+   <field name="message"     type="text_en"  indexed="true"  stored="true"  multiValued="false" />
+   <field name="tags"        type="string"   indexed="true"  stored="true"  multiValued="true" />
+   <field name="_version_"   type="long"     indexed="true"  stored="true" />
+
+   <!--
+   <field name="catch_all"   type="text_en"  indexed="true"  stored="false"  multiValued="true" />
+   <copyField source="thread_name" dest="catch_all" />
+   <copyField source="message" dest="catch_all" />
+   -->
+
+   <!-- field to use to determine and enforce document uniqueness. -->
+   <uniqueKey>id</uniqueKey>
+
+   <!-- field for the QueryParser to use when an explicit fieldname is absent -->
+   <!--
+   <defaultSearchField>catch_all</defaultSearchField>
+   -->
+
+   <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
+   <solrQueryParser defaultOperator="OR"/>
+</schema>
