@@ -17,7 +17,7 @@ mvn clean package
 ## Configuration
 ### General
 In addition to the typical appender configuration (such as layout, Threshold, etc.), these common properties control the appender in general:
-*  **stagingBufferSize** -- the number of entries to collect for a batch before publishing (default is 5000).
+*  **stagingBufferSize** -- the number of entries to collect for a batch before publishing (default is 2000).
 *  **tags** -- comma-separated tokens to associate to the log entries (used mainly for search filtering). Examples:
     *  `production,webserver`
     *  `qa,database`
