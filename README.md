@@ -66,7 +66,7 @@ logs/myApplication/20150327081000_6187f4043f2449ccb4cbd3a7930d1130
 
 ### Solr
 There is only one property for Solr: the REST endpoint to the core/collection:
-** solrUrl -- the URL to core/collection
+* **solrUrl** -- the URL to core/collection
 
 A sample snippet from `log4j.properties`:
 ```
