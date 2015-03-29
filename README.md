@@ -11,7 +11,7 @@ Download the code and build the .jar to include in your program.  The code is 10
 
 ```
 mvn clean package 
-...
+```
 
 
 ## Configuration
