@@ -4,6 +4,8 @@ A [Log4j appender](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/
 *  [AWS S3](http://aws.amazon.com/s3/) for remote storage/archive.
 *  [Apache Solr](http://lucene.apache.org/solr/) for search.
 
+All external store above are optional.  If no configuration is found for S3, for instance, the appender will not attempt to publish to S3.  Likewise, if there is not configuration for Apache Solr, the appender will not attempt to publish to Solr.
+
 ## Installation
 Download the code and build the .jar to include in your program.  The code is 100% Java, so building the jar will be a breeze.  You will need the basics:
 * [JSDK 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
