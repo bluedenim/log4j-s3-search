@@ -76,7 +76,7 @@ log4j.appender.S3Appender.solrUrl=http://localhost:8983/solr/log-events/
 ```
 
 ## Solr Integration
-A new core should be created for the log events.  A sample template for the `schema.xml` is included here as /misc/solr/schema.xml.
+A new core should be created for the log events.  The setting up of Apache Solr and the setting up of a core are outside the scope of this file.  However, a sample template for a `schema.xml` that can be used is included in this repo as `/misc/solr/schema.xml`.
 
 Each log event will be indexed as a Solr document.  The "id" property for each document 
 will follow the format:
