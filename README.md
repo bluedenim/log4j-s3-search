@@ -62,7 +62,7 @@ The final S3 key used in the bucket follows the format:
 
 e.g.
 
-logs/myApplication/20150327081000_6187f4043f2449ccb4cbd3a7930d1130
+logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
 
 
@@ -81,11 +81,11 @@ A new core should be created for the log events.  The setting up of Apache Solr 
 Each log event will be indexed as a Solr document.  The "id" property for each document 
 will follow the format:
 ```
-yyyyMMddHH24mmss_{UUID w/ "-" stripped}-{host name}-{sequence}
+yyyyMMddHH24mmss_{host name}_{UUID w/ "-" stripped}-{sequence}
 
 e.g.
 
-20150327081000_6187f4043f2449ccb4cbd3a7930d1130-localhost-0000000000000012
+20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130-0000000000000012
 ```
 
 *NOTE* that this ID is formatted such that one can cross-reference a Solr
