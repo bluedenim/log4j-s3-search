@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.van</groupId>
   <artifactId>s3logger</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>Log4j Logger to S3</name>
   <description>Log4j Appender to transfer to AWS S3 and Apache Solr</description>
   <dependencies>
@@ -22,4 +22,20 @@
             <version>5.0.0</version>
         </dependency>
   </dependencies>
+  <build>
+    <plugins>
+        <plugin>
+        <!-- NOTE: We don't need a groupId specification because the group is
+             org.apache.maven.plugins ...which is assumed by default.
+         -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+        </plugin>
+    </plugins>
+  </build>
 </project>
