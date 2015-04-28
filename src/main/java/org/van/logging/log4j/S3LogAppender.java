@@ -81,12 +81,16 @@ public class S3LogAppender extends AppenderSkeleton
 	private SolrConfiguration solr;
 	private AmazonS3Client s3Client;	
 	
+	@Override
 	public void close() {
+		System.out.println("close(): Cleaning up resources");
 		if (null != stagingLog) {
+			stagingLog.flushAndPublishQueue(true);
 			stagingLog = null;
 		}
 	}
 
+	@Override
 	public boolean requiresLayout() {
 		return true;
 	}
@@ -198,6 +202,13 @@ public class S3LogAppender extends AppenderSkeleton
 			stagingLog = new LoggingEventCache(
 				uuid.toString().replaceAll("-",""), stagingBufferSize, 
 				publisher);
+			
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				public void run() {
+					System.out.println("Publishing staging log on shutdown...");
+					stagingLog.flushAndPublishQueue(true);
+				}
+			});
 		}
 	}
 	

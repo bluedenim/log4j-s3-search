@@ -1,9 +1,12 @@
 package org.van.logging;
 
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.log4j.spi.LoggingEvent;
 
@@ -112,25 +115,51 @@ public class LoggingEventCache {
 	 * @param event the log event to add to the cache.
 	 */
 	public void add(LoggingEvent event) {
-		Queue<LoggingEvent> queueToPublish = null;
+		boolean publish = false;
 		synchronized(EVENTQUEUELOCK) {
 			if (eventQueueLength < capacity) {
 				eventQueue.add(event);
 				eventQueueLength++;
 			} else {
+				publish = true; 
+			}
+		}
+		if (publish) {
+			flushAndPublishQueue(false);
+		}
+	}
+	
+	/**
+	 * Publish the current staging log to remote stores if the staging log
+	 * is not empty.
+	 * 
+	 */
+	public void flushAndPublishQueue(boolean block) {
+		Queue<LoggingEvent> queueToPublish = null;
+		synchronized(EVENTQUEUELOCK) {
+			if (eventQueueLength > 0) {
 				queueToPublish = eventQueue;
 				eventQueue = new ConcurrentLinkedQueue<LoggingEvent>();
 				eventQueueLength = 0;
 			}
 		}
 		if (null != queueToPublish) {
-			publishCache(cacheName, queueToPublish);
+			Future<Boolean> f = publishCache(cacheName, queueToPublish);
+			if (block) {
+				try {
+					f.get();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
-	void publishCache(final String name, final Queue<LoggingEvent> eventsToPublish) {
-		executorService.submit(new Runnable() {
-			public void run() {
+	Future<Boolean> publishCache(final String name, final Queue<LoggingEvent> eventsToPublish) {
+		Future<Boolean> f = executorService.submit(new Callable<Boolean>() {
+			public Boolean call() {
 				Thread.currentThread().setName(PUBLISH_THREAD_NAME);
 				int sequence = 0;
 				PublishContext context = cachePublisher.startPublish(cacheName);
@@ -139,7 +168,9 @@ public class LoggingEventCache {
 					sequence++;
 				}
 				cachePublisher.endPublish(context);
+				return true;
 			}
 		});
+		return f;
 	}
 }
