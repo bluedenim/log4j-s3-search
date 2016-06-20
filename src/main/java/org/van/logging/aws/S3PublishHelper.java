@@ -71,7 +71,7 @@ public class S3PublishHelper implements IPublishHelper {
 		// For now, I've chosen the 2nd option.
 		if (!bucketExists) {
 			try {
-				//client.createBucket(bucket);
+				client.createBucket(bucket);
 				bucketExists = true;
 			} catch (AmazonS3Exception ex) {
 				if (S3ERRCODE_BUCKETALREADYOWNEDBYYOU.equals(ex.getErrorCode())) {
