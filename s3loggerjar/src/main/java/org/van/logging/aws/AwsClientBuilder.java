@@ -77,7 +77,10 @@ public class AwsClientBuilder {
 		T client;
 		try {
 			Constructor<T> ctor = clientClass.getConstructor(AWSCredentialsProvider.class);
-			client = ctor.newInstance(getCredentialsProvider());
+            AWSCredentialsProvider credentialsProvider = getCredentialsProvider();
+            System.out.println(String.format("Initializing %s with ID %s...",
+                clientClass.getName(), credentialsProvider.getCredentials().getAWSAccessKeyId()));
+			client = ctor.newInstance(credentialsProvider);
 			client.setRegion(region);
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Cannot build client", e);
