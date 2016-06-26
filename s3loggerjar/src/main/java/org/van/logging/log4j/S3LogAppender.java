@@ -20,7 +20,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
  * The log appender adapter that hooks into the Log4j framework to collect
- * logging events.
+ * logging events. <b>This is pretty much the entry point for the log appender.</b>
  * <br>
  * <h2>General</h2>
  * In addition to the typical log appender parameters, this appender also
@@ -189,12 +189,14 @@ public class S3LogAppender extends AppenderSkeleton
 		if (null == stagingLog) {
 			CachePublisher publisher = new CachePublisher(layout, hostName, tags);
 			if (null != s3Client) {
+				System.out.println("Registering S3 publish helper");
 				publisher.addHelper(new S3PublishHelper(s3Client,
 					s3.getBucket(), s3.getPath()));
 			}
 			if (null != solr) {
 			URL solrUrl = solr.getUrl();
 				if (null != solrUrl) {
+                    System.out.println("Registering SOLR publish helper");
 					publisher.addHelper(new SolrPublishHelper(solrUrl));
 				}
 			}
