@@ -10,12 +10,26 @@ All external store above are optional.  If no configuration is found for S3, for
 
 ## Installation
 Download the code and build the .jar to include in your program.  The code is 100% Java, so building the jar will be a breeze.  You will need the basics:
-* [JSDK 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [JSDK 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Maven](http://maven.apache.org/)
 
 ```
 mvn clean package 
 ```
+
+### Running the sample
+To run the sample program **s3loggersample**, some additional steps:
+
+```
+cd s3loggersample
+mvn assembly:assembly
+java -cp target\s3loggersample-0.0.3-jar-with-dependencies.jar org.van.example.Main
+```
+
+## Usage
+The `s3loggerjar-x.y.z.jar` is the only JAR/dependency you need for your program. You can see how a sample program can be set up by looking at how **s3loggersample** uses the jar.
+
+You will need to add (create if necessary) a `log4j.properties` file for you program that configures the logger appender. Again, you can see how it is done in the **s3loggersample** module.
 
 
 ## Configuration

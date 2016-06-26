@@ -38,7 +38,12 @@ public class CachePublisher implements ICachePublisher {
 		PublishContext context = new PublishContext(namespacedCacheName,
 			hostName, tags, layout);
 		for (IPublishHelper helper: helpers) {
-			helper.start(context);
+			try {
+				helper.start(context);
+			} catch (Throwable t) {
+				System.out.println(String.format("Cannot publish with %s due to error: %s",
+					helper, t.getMessage()));
+			}
 		}
 		return context;
 	}
