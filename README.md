@@ -27,9 +27,10 @@ java -cp target\s3loggersample-0.0.3-jar-with-dependencies.jar org.van.example.M
 ```
 
 ## Usage
-The `s3loggerjar-x.y.z.jar` is the only JAR/dependency you need for your program. You can see how a sample program can be set up by looking at how **s3loggersample** uses the jar.
+The `s3loggerjar-x.y.z.jar` is the only JAR/dependency you need for your program. You can see how a sample program can be set up by looking at how **s3loggersample** uses the jar:
 
-You will need to add (create if necessary) a `log4j.properties` file for you program that configures the logger appender. Again, you can see how it is done in the **s3loggersample** module.
+* You will need to either build or download a prebuilt `s3loggerjar-x.y.z.jar` (e.g. from the `dist/` subdir) and add that to your program's dependency.
+* You will need to add (create if necessary) a `log4j.properties` file for you program that configures the logger appender. Again, you can see how it is done in the **s3loggersample** module.
 
 
 ## Configuration
