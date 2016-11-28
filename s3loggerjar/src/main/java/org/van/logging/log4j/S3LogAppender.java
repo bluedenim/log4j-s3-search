@@ -12,6 +12,8 @@ import org.van.logging.LoggingEventCache;
 import org.van.logging.aws.AwsClientBuilder;
 import org.van.logging.aws.S3Configuration;
 import org.van.logging.aws.S3PublishHelper;
+import org.van.logging.elasticsearch.ElasticsearchConfiguration;
+import org.van.logging.elasticsearch.ElasticsearchPublishHelper;
 import org.van.logging.solr.SolrConfiguration;
 import org.van.logging.solr.SolrPublishHelper;
 
@@ -61,6 +63,15 @@ import com.amazonaws.services.s3.AmazonS3Client;
  *   <li>solrUrl -- the URL to where your Solr core/collection is
  *     (e.g. "http://localhost:8983/solr/mylogs/")</li>
  * </ul>
+ * <h2>Elasticsearch</h2>
+ * These parameters configure the Elasticsearch publisher:
+ * <br>
+ * <ul>
+ *     <li>elasticsearchCluster -- the name of the cluster ("elasticsearch" is the default).</li>
+ *     <li>elasticsearchIndex -- the index name ("logindex" is the default).</li>
+ *     <li>elasticsearchType -- the document type ("log" is the default).</li>
+ *     <li>elasticsearchHosts -- comma-separated host:port entries for the Elasticsearch hosts (no defaults).</li>
+ * </ul>
  * @author vly
  *
  */
@@ -79,6 +90,7 @@ public class S3LogAppender extends AppenderSkeleton
 	
 	private S3Configuration s3;
 	private SolrConfiguration solr;
+	private ElasticsearchConfiguration elasticsearchConfiguration;
 	private AmazonS3Client s3Client;	
 	
 	@Override
@@ -102,7 +114,7 @@ public class S3LogAppender extends AppenderSkeleton
 	
 	// S3 properties
 	///////////////////////////////////////////////////////////////////////////	
-	public S3Configuration getS3() {
+	private S3Configuration getS3() {
 		if (null == s3) {
 			s3 = new S3Configuration();
 		}
@@ -133,7 +145,40 @@ public class S3LogAppender extends AppenderSkeleton
 		}
 		solr.setUrl(url);
 	}
-	
+
+	// Elasticsearch properties
+	///////////////////////////////////////////////////////////////////////////
+    private ElasticsearchConfiguration getElasticsearchConfiguration() {
+        if (null == elasticsearchConfiguration) {
+            elasticsearchConfiguration = new ElasticsearchConfiguration();
+        }
+        return elasticsearchConfiguration;
+    }
+
+	public void setElasticsearchCluster(String clusterName) {
+		elasticsearchConfiguration = getElasticsearchConfiguration();
+        elasticsearchConfiguration.setClusterName(clusterName);
+	}
+
+	public void setElasticsearchHosts(String hosts) {
+        elasticsearchConfiguration = getElasticsearchConfiguration();
+        String hostArray[] = hosts.split("[;\\s,]");
+        for (String entry: hostArray) {
+            elasticsearchConfiguration.addHost(entry);
+        }
+    }
+
+    public void setElasticsearchIndex(String index) {
+		elasticsearchConfiguration = getElasticsearchConfiguration();
+		elasticsearchConfiguration.setIndex(index);
+	}
+
+	public void setElasticsearchType(String type) {
+		elasticsearchConfiguration = getElasticsearchConfiguration();
+		elasticsearchConfiguration.setType(type);
+	}
+
+
 	public void setTags(String tags) {
 		if (null != tags) {
 			this.tags = tags.split("[,;]");
@@ -194,12 +239,17 @@ public class S3LogAppender extends AppenderSkeleton
 					s3.getBucket(), s3.getPath()));
 			}
 			if (null != solr) {
-			URL solrUrl = solr.getUrl();
+			    URL solrUrl = solr.getUrl();
 				if (null != solrUrl) {
                     System.out.println("Registering SOLR publish helper");
 					publisher.addHelper(new SolrPublishHelper(solrUrl));
 				}
 			}
+			if (null != elasticsearchConfiguration) {
+                System.out.println("Registering Elasticsearch publish helper");
+                publisher.addHelper(new ElasticsearchPublishHelper(elasticsearchConfiguration));
+            }
+
 			UUID uuid = UUID.randomUUID();
 			stagingLog = new LoggingEventCache(
 				uuid.toString().replaceAll("-",""), stagingBufferSize, 

@@ -23,7 +23,7 @@ public class CachePublisher implements ICachePublisher {
 	private final String[] tags;
 	
 	private List<IPublishHelper> helpers = 
-		new LinkedList<IPublishHelper>();
+		new LinkedList<>();
 	
 	public CachePublisher(Layout layout, String hostName, String[] tags) {
 		this.layout = layout;	
@@ -33,7 +33,7 @@ public class CachePublisher implements ICachePublisher {
 	
 	public PublishContext startPublish(String cacheName) {
 		String namespacedCacheName = composeNamespacedCacheName(cacheName);
-		System.out.println(String.format("BEGIN publishing to %s...",
+		System.out.println(String.format("BEGIN publishing %s...",
 			namespacedCacheName));
 		PublishContext context = new PublishContext(namespacedCacheName,
 			hostName, tags, layout);
@@ -41,7 +41,7 @@ public class CachePublisher implements ICachePublisher {
 			try {
 				helper.start(context);
 			} catch (Throwable t) {
-				System.out.println(String.format("Cannot publish with %s due to error: %s",
+				System.out.println(String.format("Cannot start publish with %s due to error: %s",
 					helper, t.getMessage()));
 			}
 		}
@@ -56,17 +56,27 @@ public class CachePublisher implements ICachePublisher {
 
 	public void publish(PublishContext context, int sequence, LoggingEvent event) {
 		for (IPublishHelper helper: helpers) {
-			helper.publish(context, sequence, event);
+			try {
+				helper.publish(context, sequence, event);
+			} catch (Throwable t) {
+				System.out.println(String.format("Cannot publish with %s due to error: %s",
+					helper, t.getMessage()));
+			}
 		}
-		System.out.println(String.format("%d:%s", sequence,
-			layout.format(event)));
+//		System.out.println(String.format("%d:%s", sequence,
+//			layout.format(event)));
 	}
 
 	public void endPublish(PublishContext context) {
 		for (IPublishHelper helper: helpers) {
-			helper.end(context);
+			try {
+				helper.end(context);
+			} catch (Throwable t) {
+				System.out.println(String.format("Cannot end publish with %s due to error: %s",
+					helper, t.getMessage()));
+			}
 		}
-		System.out.println(String.format("END publishing to %s",
+		System.out.println(String.format("END publishing %s",
 			context.getCacheName()));
 	}
 

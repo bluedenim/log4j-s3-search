@@ -5,12 +5,13 @@
 A [Log4j appender](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Appender.html) implementation that will collect log events into a staging buffer up to a configured size to then publish to external store such as:
 *  [AWS S3](http://aws.amazon.com/s3/) for remote storage/archive.
 *  [Apache Solr](http://lucene.apache.org/solr/) for search.
+*  [Elasticsearch](https://www.elastic.co/guide/index.html) for search.
 
-All external store above are optional.  If no configuration is found for S3, for instance, the appender will not attempt to publish to S3.  Likewise, if there is not configuration for Apache Solr, the appender will not attempt to publish to Solr.
+**All external stores** above are optional (although to be of any use at least one should be used).  If no configuration is found for S3, for instance, the appender will not attempt to publish to S3.  Likewise, if there is not configuration for Apache Solr, the appender will not attempt to publish to Solr.
 
 ## Installation
 Download the code and build the .jar to include in your program.  The code is 100% Java, so building the jar will be a breeze.  You will need the basics:
-* [JSDK 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [JSDK 1.8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * [Maven](http://maven.apache.org/)
 
 ```
@@ -92,20 +93,57 @@ A sample snippet from `log4j.properties`:
 log4j.appender.S3Appender.solrUrl=http://localhost:8983/solr/log-events/
 ```
 
+### Elasticsearch
+There are four properties for Elasticsearch, all but one are optional:
+* **elasticsearchCluster** -- the cluster name (default if "elasticsearch")
+* **elasticsearchIndex** -- the index in which to store the log data (default is "logindex")
+* **elasticsearchType** -- the type of a log data entry (default is "log")
+* **elasticsearchHosts** -- comma-delimited list of `host:port` values. There is no default; this property is *required*. 
+
+```
+log4j.appender.S3Appender.elasticsearchCluster=elasticsearch
+log4j.appender.S3Appender.elasticsearchIndex=logindex
+log4j.appender.S3Appender.elasticsearchType=log
+log4j.appender.S3Appender.elasticsearchHosts=localhost:9300
+```
+
 ## Solr Integration
 A new core should be created for the log events.  The setting up of Apache Solr and the setting up of a core are outside the scope of this file.  However, a sample template for a `schema.xml` that can be used is included in this repo as `/misc/solr/schema.xml`.
 
 Each log event will be indexed as a Solr document.  The "id" property for each document 
 will follow the format:
 ```
-yyyyMMddHH24mmss_{host name}_{UUID w/ "-" stripped}-{sequence}
+yyyyMMddHH24mmss_{host name}_{UUID w/ "-" stripped}-{host name}-{sequence}
 
 e.g.
 
-20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130-0000000000000012
+20150327081000_mycomputer_6187f4043f2449ccb4cbd3a7930d1130-mycomputer-0000000000000012
 ```
 
-*NOTE* that this ID is formatted such that one can cross-reference a Solr
+*NOTE* that this ID is formatted such that one can cross-reference a 
+document to the S3 batch from which the corresponding log event can be found.
+
+```
+String id = solrDoc.getFieldValue("id").toString();
+String s3Key = id.substring(0, id.indexOf("-"));
+```
+
+## Elasticsearch Integration
+A new index should be created for the log events.  The setting up of Elasticsearch and the index are outside the scope of this file.  However, a sample template for the index schema that can be used is included in this repo as `/misc/elasticsearch/logindex.json`.
+This schema should be installed before any log entries are added. A typical PUT to `/<elasticsearch host>:9200/<index>` with
+the body of the JSON should be sufficient. 
+
+Each log event will be indexed as a document.  The "id" property for each document 
+will follow the format:
+```
+yyyyMMddHH24mmss_{host name}_{UUID w/ "-" stripped}-{host name}-{sequence}
+
+e.g.
+
+20150327081000_mycomputer_6187f4043f2449ccb4cbd3a7930d1130-mycomputer-0000000000000012
+```
+
+*NOTE* that this ID is formatted such that one can cross-reference a 
 document to the S3 batch from which the corresponding log event can be found.
 
 ```
