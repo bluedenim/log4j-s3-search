@@ -1,0 +1,39 @@
+{
+  "mappings":{
+    "log":{
+      "properties":{
+        "hostname":{
+          "type":"text",
+          "index" : "not_analyzed"
+        },
+        "logger":{
+          "type":"text",
+          "index" : "not_analyzed"
+        },
+        "message":{
+          "type":"text",
+          "index" : "analyzed",
+          "analyzer" : "english"
+        },
+        "offset":{
+          "type":"long"
+        },
+        "tags":{
+          "type":"text",
+          "index" : "not_analyzed"
+        },
+        "thread_name":{
+          "type":"text",
+          "index" : "not_analyzed"
+        },
+        "timestamp":{
+          "type":"date"
+        },
+        "type":{
+          "type":"text",
+          "index" : "not_analyzed"
+        }
+      }
+    }
+  }
+}
