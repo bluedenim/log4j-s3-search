@@ -24,7 +24,7 @@ To run the sample program **s3loggersample**, some additional steps:
 ```
 cd s3loggersample
 mvn assembly:assembly
-java -cp target\s3loggersample-0.0.3-jar-with-dependencies.jar org.van.example.Main
+java -cp target\s3loggersample-0.0.4-jar-with-dependencies.jar org.van.example.Main
 ```
 
 ## Usage
