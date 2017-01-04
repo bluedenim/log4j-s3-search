@@ -34,7 +34,7 @@ public class S3Configuration {
 		return region;
 	}
 	public void setRegion(String region) {
-		this.region = region;
+			this.region = Regions.fromName(region).name();
 	}
 	public String getBucket() {
 		return bucket;
