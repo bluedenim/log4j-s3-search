@@ -124,6 +124,10 @@ public class S3LogAppender extends AppenderSkeleton
 	public void setS3Bucket(String bucket) {
 		getS3().setBucket(bucket);
 	}
+
+	public void setS3Region(String region) {
+		getS3().setRegion(region);
+	}
 	
 	public void setS3Path(String path) {
 		getS3().setPath(path);
