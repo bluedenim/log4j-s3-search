@@ -54,7 +54,8 @@ log4j.appender.S3Appender.stagingBufferSize=2500
 ```
 
 ### S3
-These properties control how the logs will be stored in S3:
+These properties (**please use your own values**) control how the logs will be stored in S3:
+* **s3Region** -- the AWS region to use (e.g. "us-west-2").
 * **s3Bucket** -- the S3 bucket to use.  The logger will attempt to create this bucket if it doesn't already exist.
 * **s3Path** -- the path to the uploaded files (key prefix under the hood)
 
@@ -66,6 +67,7 @@ When these properties are present in the configuration, they *take precedence ov
 
 A sample snippet from `log4j.properties` (with the optional s3AccessKey and s3SecretKey properties set):
 ```
+log4j.appender.S3Appender.s3Region=us-west-2
 log4j.appender.S3Appender.s3Bucket=acmecorp
 log4j.appender.S3Appender.s3Path=logs/myApplication/
 

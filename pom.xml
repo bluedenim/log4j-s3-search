@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.van</groupId>
     <artifactId>s3logger</artifactId>
-    <version>0.0.4</version>
+    <version>0.1.0</version>
     <name>s3logger</name>
     <description>Log4j Appender to transfer to AWS S3 and Apache Solr</description>
     <packaging>pom</packaging>

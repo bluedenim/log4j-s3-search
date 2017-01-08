@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>s3loggersample</artifactId>
-    <version>0.0.4</version>
+    <version>0.1.0</version>
     <name>s3logger sample</name>
     <description>A sample program using the Log4j Appender jar.</description>
 
     <parent>
         <groupId>org.van</groupId>
         <artifactId>s3logger</artifactId>
-        <version>0.0.4</version>
+        <version>0.1.0</version>
     </parent>
     <dependencies>
         <dependency>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.van</groupId>
             <artifactId>s3loggerjar</artifactId>
-            <version>0.0.4</version>
+            <version>0.1.0</version>
         </dependency>
     </dependencies>
 

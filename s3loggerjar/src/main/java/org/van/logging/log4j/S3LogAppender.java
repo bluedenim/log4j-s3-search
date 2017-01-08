@@ -91,11 +91,14 @@ public class S3LogAppender extends AppenderSkeleton
 	private S3Configuration s3;
 	private SolrConfiguration solr;
 	private ElasticsearchConfiguration elasticsearchConfiguration;
-	private AmazonS3Client s3Client;	
+	private AmazonS3Client s3Client;
+	private boolean verbose = false;
 	
 	@Override
 	public void close() {
-		System.out.println("close(): Cleaning up resources");
+		if (verbose) {
+			System.out.println("close(): Cleaning up resources");
+		}
 		if (null != stagingLog) {
 			stagingLog.flushAndPublishQueue(true);
 			stagingLog = null;
@@ -109,9 +112,15 @@ public class S3LogAppender extends AppenderSkeleton
 
 	public void setStagingBufferSize(int buffer) {
 		stagingBufferSize = buffer;
-	}	
-	
-	
+	}
+
+
+	// general properties
+	///////////////////////////////////////////////////////////////////////////
+	public void setVerbose(String verboseStr) {
+		this.verbose = Boolean.parseBoolean(verboseStr);
+	}
+
 	// S3 properties
 	///////////////////////////////////////////////////////////////////////////	
 	private S3Configuration getS3() {
@@ -209,16 +218,16 @@ public class S3LogAppender extends AppenderSkeleton
 			java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
 			hostName = addr.getHostName();
 			if (null != s3) {
-				AwsClientBuilder builder = 
-					new AwsClientBuilder(Regions.valueOf(s3.getRegion()),
+				AwsClientBuilder builder =
+					new AwsClientBuilder(s3.getRegion(),
 						s3.getAccessKey(), s3.getSecretKey());
-				s3Client = builder.build(AmazonS3Client.class);
+				s3Client = (AmazonS3Client) builder.build(AmazonS3Client.class);
 			}
 			initStagingLog();
 		} catch (Exception ex) {
 			errorHandler.error("Cannot initialize resources", ex, 100);
 		}
-	}	
+	}
 
 	void initFilters() {
 		addFilter(new Filter() {
@@ -238,19 +247,25 @@ public class S3LogAppender extends AppenderSkeleton
 		if (null == stagingLog) {
 			CachePublisher publisher = new CachePublisher(layout, hostName, tags);
 			if (null != s3Client) {
-				System.out.println("Registering S3 publish helper");
+				if (verbose) {
+					System.out.println("Registering S3 publish helper");
+				}
 				publisher.addHelper(new S3PublishHelper(s3Client,
 					s3.getBucket(), s3.getPath()));
 			}
 			if (null != solr) {
 			    URL solrUrl = solr.getUrl();
 				if (null != solrUrl) {
-                    System.out.println("Registering SOLR publish helper");
+					if (verbose) {
+						System.out.println("Registering SOLR publish helper");
+					}
 					publisher.addHelper(new SolrPublishHelper(solrUrl));
 				}
 			}
 			if (null != elasticsearchConfiguration) {
-                System.out.println("Registering Elasticsearch publish helper");
+				if (verbose) {
+					System.out.println("Registering Elasticsearch publish helper");
+				}
                 publisher.addHelper(new ElasticsearchPublishHelper(elasticsearchConfiguration));
             }
 
@@ -261,7 +276,9 @@ public class S3LogAppender extends AppenderSkeleton
 			
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				public void run() {
-					System.out.println("Publishing staging log on shutdown...");
+					if (verbose) {
+						System.out.println("Publishing staging log on shutdown...");
+					}
 					stagingLog.flushAndPublishQueue(true);
 				}
 			});
