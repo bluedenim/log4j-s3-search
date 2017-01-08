@@ -33,15 +33,15 @@ public class CachePublisher implements ICachePublisher {
 	
 	public PublishContext startPublish(String cacheName) {
 		String namespacedCacheName = composeNamespacedCacheName(cacheName);
-		System.out.println(String.format("BEGIN publishing %s...",
-			namespacedCacheName));
+		/* System.out.println(String.format("BEGIN publishing %s...",
+			namespacedCacheName)); */
 		PublishContext context = new PublishContext(namespacedCacheName,
 			hostName, tags, layout);
 		for (IPublishHelper helper: helpers) {
 			try {
 				helper.start(context);
 			} catch (Throwable t) {
-				System.out.println(String.format("Cannot start publish with %s due to error: %s",
+				System.err.println(String.format("Cannot start publish with %s due to error: %s",
 					helper, t.getMessage()));
 			}
 		}
@@ -59,12 +59,12 @@ public class CachePublisher implements ICachePublisher {
 			try {
 				helper.publish(context, sequence, event);
 			} catch (Throwable t) {
-				System.out.println(String.format("Cannot publish with %s due to error: %s",
+				System.err.println(String.format("Cannot publish with %s due to error: %s",
 					helper, t.getMessage()));
 			}
 		}
-//		System.out.println(String.format("%d:%s", sequence,
-//			layout.format(event)));
+        /* System.out.println(String.format("%d:%s", sequence,
+			layout.format(event))); */
 	}
 
 	public void endPublish(PublishContext context) {
@@ -72,12 +72,12 @@ public class CachePublisher implements ICachePublisher {
 			try {
 				helper.end(context);
 			} catch (Throwable t) {
-				System.out.println(String.format("Cannot end publish with %s due to error: %s",
+				System.err.println(String.format("Cannot end publish with %s due to error: %s",
 					helper, t.getMessage()));
 			}
 		}
-		System.out.println(String.format("END publishing %s",
-			context.getCacheName()));
+		/* System.out.println(String.format("END publishing %s",
+			context.getCacheName())); */
 	}
 
 	/**
