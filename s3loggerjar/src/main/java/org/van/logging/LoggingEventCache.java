@@ -117,10 +117,9 @@ public class LoggingEventCache {
 	public void add(LoggingEvent event) {
 		boolean publish = false;
 		synchronized(EVENTQUEUELOCK) {
-			if (eventQueueLength < capacity) {
-				eventQueue.add(event);
-				eventQueueLength++;
-			} else {
+			eventQueue.add(event);
+			eventQueueLength++;
+			if (eventQueueLength >= capacity) {
 				publish = true; 
 			}
 		}
