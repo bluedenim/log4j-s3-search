@@ -3,12 +3,13 @@ package org.van.logging;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.log4j.spi.LoggingEvent;
+import org.van.logging.solr.IFlushAndPublish;
 
 /**
  * An event cache that buffers/collects events and publishes them in a 
@@ -17,79 +18,35 @@ import org.apache.log4j.spi.LoggingEvent;
  * @author vly
  *
  */
-public class LoggingEventCache {
+public class LoggingEventCache implements IFlushAndPublish {
 	
 	public static final String PUBLISH_THREAD_NAME =
 		"LoggingEventCache-publish-thread";
-	
-	/**
-	 * Interface for a publishing collaborator 
-	 * 
-	 * @author vly
-	 *
-	 */
-	public interface ICachePublisher {
-		
-		/**
-		 * Start a batch of events with the given name.  Implementations should
-		 * initialize a publish context and return it.
-		 * 
-		 * @param cacheName the name for the batch of events
-		 * 
-		 * @return a context for subsequent operations
-		 */
-		PublishContext startPublish(final String cacheName);
-		
-		/**
-		 * Publish an event in the batch
-		 * 
-		 * @param context the context for this batch
-		 * @param sequence the sequence of this event in the batch.  This 
-		 * number increases per event
-		 * @param event the logging event
-		 */
-		void publish(final PublishContext context, final int sequence, 
-			final LoggingEvent event);
-		
-		/**
-		 * Concludes a publish batch.  Implementations should submit/commit
-		 * a batch and/or clean up resources in preparation for the next
-		 * batch.
-		 * 
-		 * @param context the context for this batch
-		 */
-		void endPublish(final PublishContext context);
-	}
 
 	private final String cacheName;
-	private final int capacity;
-	
-	private final Object EVENTQUEUELOCK = new Object();
-	// Supposedly Log4j already takes care of concurrency for us, so theoretically
-	// we do not need the EVENTQUEUELOCK around {eventQueue, eventQueueLength}
-	// (or the need to use a ConcurrentLinkedQueue as opposed to just a normal
-	// List).  Dunno.  To be safe, I am using them.
-	private Queue<LoggingEvent> eventQueue =			
-		new ConcurrentLinkedQueue<LoggingEvent>();
-	private volatile int eventQueueLength = 0;
-	
-	private final ICachePublisher cachePublisher;
+
+	private AtomicReference<Queue<LoggingEvent>> eventQueueRef =
+		new AtomicReference<>(new ConcurrentLinkedQueue<LoggingEvent>());
+
+	private final IBufferMonitor cacheMonitor;
+	private final IBufferPublisher cachePublisher;
 	private final ExecutorService executorService;
 	
 	/**
-	 * Creates an instance with the provided cache publishing collaborator.
+	 * Creates an instance with the provided buffer publishing collaborator.
 	 * The instance will create a buffer of the capacity specified and will
 	 * publish a batch when collected events reach that capacity.
 	 * 
-	 * @param cacheName name for the cache
-	 * @param capacity the capacity of the buffer for events before the buffer
+	 * @param cacheName name for the buffer
+	 * @param cacheMonitor the monitor for the buffer that will determine when
+	 *                     and effect the flushing and publishing of the cache.
 	 * is published
 	 * @param cachePublisher the publishing collaborator
 	 */
-	public LoggingEventCache(String cacheName, int capacity, 
-		ICachePublisher cachePublisher) {
+	public LoggingEventCache(String cacheName, IBufferMonitor cacheMonitor,
+		IBufferPublisher cachePublisher) {
 		this.cacheName = cacheName;
-		this.capacity = capacity;
+		this.cacheMonitor = cacheMonitor;
 		this.cachePublisher = cachePublisher;
 		executorService = createExecutorService(); 
 	}
@@ -115,46 +72,29 @@ public class LoggingEventCache {
 	 * @param event the log event to add to the cache.
 	 */
 	public void add(LoggingEvent event) {
-		boolean publish = false;
-		synchronized(EVENTQUEUELOCK) {
-			if (eventQueueLength < capacity) {
-				eventQueue.add(event);
-				eventQueueLength++;
-			} else {
-				publish = true; 
-			}
-		}
-		if (publish) {
-			flushAndPublishQueue(false);
-		}
+        eventQueueRef.get().add(event);
+        cacheMonitor.eventAdded(event, this);
 	}
 	
 	/**
 	 * Publish the current staging log to remote stores if the staging log
 	 * is not empty.
-	 * 
+	 *
+     * @return a {@link Future<Boolean>} representing the result of the flush
+     * and publish operation. Caller can call {@link Future#get()} on it to
+     * wait for the operation. NOTE: This value CAN BE null if there was nothing
+     * to publish.
 	 */
-	public void flushAndPublishQueue(boolean block) {
+	@Override
+	public Future<Boolean> flushAndPublish() {
 		Queue<LoggingEvent> queueToPublish = null;
-		synchronized(EVENTQUEUELOCK) {
-			if (eventQueueLength > 0) {
-				queueToPublish = eventQueue;
-				eventQueue = new ConcurrentLinkedQueue<LoggingEvent>();
-				eventQueueLength = 0;
-			}
+        Future<Boolean> f = null;
+        queueToPublish = eventQueueRef.getAndSet(new ConcurrentLinkedQueue<LoggingEvent>());
+		// Do not use queueToPublish.size() since that is O(n)
+		if ((null != queueToPublish) && !queueToPublish.isEmpty()) {
+			f = publishCache(cacheName, queueToPublish);
 		}
-		if (null != queueToPublish) {
-			Future<Boolean> f = publishCache(cacheName, queueToPublish);
-			if (block) {
-				try {
-					f.get();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		return f;
 	}
 	
 	Future<Boolean> publishCache(final String name, final Queue<LoggingEvent> eventsToPublish) {
