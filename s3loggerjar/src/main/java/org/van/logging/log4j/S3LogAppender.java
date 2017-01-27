@@ -8,7 +8,7 @@ import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.OptionHandler;
-import org.van.logging.LoggingEventCache;
+import org.van.logging.*;
 import org.van.logging.aws.AwsClientBuilder;
 import org.van.logging.aws.S3Configuration;
 import org.van.logging.aws.S3PublishHelper;
@@ -17,7 +17,6 @@ import org.van.logging.elasticsearch.ElasticsearchPublishHelper;
 import org.van.logging.solr.SolrConfiguration;
 import org.van.logging.solr.SolrPublishHelper;
 
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
@@ -79,9 +78,9 @@ public class S3LogAppender extends AppenderSkeleton
 	implements Appender, OptionHandler {
 	
 	static final int DEFAULT_THRESHOLD = 2000;
-	static final int MONITOR_PERIOD = 30;
 
-	private int stagingBufferSize = DEFAULT_THRESHOLD;	
+	private int stagingBufferSize = DEFAULT_THRESHOLD;
+	private int stagingBufferAge = 0;
 	
 	private LoggingEventCache stagingLog = null;
 	
@@ -100,7 +99,7 @@ public class S3LogAppender extends AppenderSkeleton
 			System.out.println("close(): Cleaning up resources");
 		}
 		if (null != stagingLog) {
-			stagingLog.flushAndPublishQueue(true);
+			stagingLog.flushAndPublish();
 			stagingLog = null;
 		}
 	}
@@ -113,6 +112,10 @@ public class S3LogAppender extends AppenderSkeleton
 	public void setStagingBufferSize(int buffer) {
 		stagingBufferSize = buffer;
 	}
+
+	public void setStagingBufferAge(int minutes) {
+	    stagingBufferAge = minutes;
+    }
 
 
 	// general properties
@@ -245,44 +248,59 @@ public class S3LogAppender extends AppenderSkeleton
 	
 	void initStagingLog() throws Exception {
 		if (null == stagingLog) {
-			CachePublisher publisher = new CachePublisher(layout, hostName, tags);
-			if (null != s3Client) {
-				if (verbose) {
-					System.out.println("Registering S3 publish helper");
-				}
-				publisher.addHelper(new S3PublishHelper(s3Client,
-					s3.getBucket(), s3.getPath()));
-			}
-			if (null != solr) {
-			    URL solrUrl = solr.getUrl();
-				if (null != solrUrl) {
-					if (verbose) {
-						System.out.println("Registering SOLR publish helper");
-					}
-					publisher.addHelper(new SolrPublishHelper(solrUrl));
-				}
-			}
-			if (null != elasticsearchConfiguration) {
-				if (verbose) {
-					System.out.println("Registering Elasticsearch publish helper");
-				}
-                publisher.addHelper(new ElasticsearchPublishHelper(elasticsearchConfiguration));
-            }
-
 			UUID uuid = UUID.randomUUID();
 			stagingLog = new LoggingEventCache(
-				uuid.toString().replaceAll("-",""), stagingBufferSize, 
-				publisher);
+				uuid.toString().replaceAll("-",""),
+                createCacheMonitor(),
+                createCachePublisher());
 			
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				public void run() {
 					if (verbose) {
 						System.out.println("Publishing staging log on shutdown...");
 					}
-					stagingLog.flushAndPublishQueue(true);
+					stagingLog.flushAndPublish();
 				}
 			});
 		}
 	}
+
+	IBufferPublisher createCachePublisher() {
+        BufferPublisher publisher = new BufferPublisher(layout, hostName, tags);
+        if (null != s3Client) {
+            if (verbose) {
+                System.out.println("Registering S3 publish helper");
+            }
+            publisher.addHelper(new S3PublishHelper(s3Client,
+                s3.getBucket(), s3.getPath()));
+        }
+        if (null != solr) {
+            URL solrUrl = solr.getUrl();
+            if (null != solrUrl) {
+                if (verbose) {
+                    System.out.println("Registering SOLR publish helper");
+                }
+                publisher.addHelper(new SolrPublishHelper(solrUrl));
+            }
+        }
+        if (null != elasticsearchConfiguration) {
+            if (verbose) {
+                System.out.println("Registering Elasticsearch publish helper");
+            }
+            publisher.addHelper(new ElasticsearchPublishHelper(elasticsearchConfiguration));
+        }
+        return publisher;
+    }
+
+	IBufferMonitor createCacheMonitor() {
+	    IBufferMonitor monitor = new CapacityBasedBufferMonitor(stagingBufferSize);
+	    if (0 < stagingBufferAge) {
+	        monitor = new TimePeriodBasedBufferMonitor(stagingBufferAge);
+        }
+	    if (verbose) {
+	        System.out.println(String.format("Using cache monitor: %s", monitor.toString()));
+        }
+        return monitor;
+    }
 	
 }
