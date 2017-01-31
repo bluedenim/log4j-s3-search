@@ -12,7 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CapacityBasedBufferMonitor implements IBufferMonitor {
 
     private final int cacheLimit;
-    private final AtomicInteger countRef = new AtomicInteger();
+    private final Object countGuard = new Object();
+    private int count = 0;
 
     /**
      * Creates an instance with the cache limit as provided. When hooked up to a
@@ -29,12 +30,18 @@ public class CapacityBasedBufferMonitor implements IBufferMonitor {
 
     @Override
     public void eventAdded(final LoggingEvent event, final IFlushAndPublish cache) {
-        int count = countRef.incrementAndGet();
-        if (count >= cacheLimit) {
+        boolean flush = false;
+        synchronized (countGuard) {
+            if (++count >= cacheLimit) {
+                flush = true;
+                count = 0;
+            }
+        }
+        if (flush) {
             try {
                 cache.flushAndPublish();
-            } finally {
-                countRef.set(0);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
     }

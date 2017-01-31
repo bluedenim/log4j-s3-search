@@ -4,7 +4,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.van.logging.solr.IFlushAndPublish;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implementation of {@link IBufferMonitor} that flushes the cache when a specified time period
@@ -22,14 +22,14 @@ public class TimePeriodBasedBufferMonitor implements IBufferMonitor {
     private final ScheduledExecutorService scheduledExecutorService =
         Executors.newScheduledThreadPool(1);
 
-    private final AtomicReference<ScheduledFuture<Boolean>> scheduledFutureRef =
-        new AtomicReference<>();
+    private final AtomicBoolean monitorStarted = new AtomicBoolean(false);
+    private final long periodInSeconds;
 
     static class TimeDurationTuple {
-        public final int amount;
+        public final long amount;
         public final TimeUnit timeUnit;
 
-        public TimeDurationTuple(int amount, TimeUnit timeUnit) {
+        public TimeDurationTuple(long amount, TimeUnit timeUnit) {
             this.amount = amount;
             this.timeUnit = timeUnit;
         }
@@ -40,46 +40,50 @@ public class TimePeriodBasedBufferMonitor implements IBufferMonitor {
         }
     }
 
-    private final TimeDurationTuple timeDurationTuple;
-
-
     public TimePeriodBasedBufferMonitor(int minutes) {
         this(minutes, TimeUnit.MINUTES);
     }
 
     public TimePeriodBasedBufferMonitor(int amount, TimeUnit timeUnit) {
-        timeDurationTuple = new TimeDurationTuple(amount, timeUnit);
+        this.periodInSeconds = timeUnit.toSeconds(amount);
     }
 
     @Override
     public void eventAdded(final LoggingEvent event, final IFlushAndPublish publisher) {
-        ScheduledFuture<Boolean> scheduledFuture = scheduledFutureRef.get();
-        if (null == scheduledFuture) {
+        if (!monitorStarted.getAndSet(true)) {
             TimeDurationTuple tuple = getSchedulingTimeDuration();
-            scheduledFutureRef.set(scheduledExecutorService.schedule(
-                new Callable<Boolean>() {
+            scheduledExecutorService.scheduleAtFixedRate(
+                new Runnable() {
                     @Override
-                    public Boolean call() throws Exception {
+                    public void run() {
+                        long started = System.currentTimeMillis();
                         try {
                             publisher.flushAndPublish();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
                         } finally {
-                            scheduledFutureRef.set(null);
+                            long now = System.currentTimeMillis();
+                            if (now - started > (periodInSeconds * 9 / 10)) {
+                                //System.out.println(
+                                //    "Publish operation is approaching monitor period. Increase " +
+                                //    "period or risk compromising fixed rate.");
+                            }
                         }
-                        return true;
                     }
                 },
-                tuple.amount, tuple.timeUnit));
+                0L,
+                tuple.amount, tuple.timeUnit);
         }
     }
 
     @Override
     public String toString() {
         return String.format(
-            "TimePeriodBasedBufferMonitor(timePeriodMinutes: %s)",
-            timeDurationTuple.toString());
+            "TimePeriodBasedBufferMonitor(periodInSeconds: %d)",
+            periodInSeconds);
     }
 
     TimeDurationTuple getSchedulingTimeDuration() {
-        return timeDurationTuple;
+        return new TimeDurationTuple(periodInSeconds, TimeUnit.SECONDS);
     }
 }
