@@ -3,6 +3,8 @@ package org.van.logging;
 import org.apache.log4j.spi.LoggingEvent;
 import org.van.logging.solr.IFlushAndPublish;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Implementation of {@link IBufferMonitor} that flushes the cache when its capacity
  * reaches a limit.
@@ -10,7 +12,7 @@ import org.van.logging.solr.IFlushAndPublish;
 public class CapacityBasedBufferMonitor implements IBufferMonitor {
 
     private final int cacheLimit;
-    private int count = 0;
+    private final AtomicInteger countRef = new AtomicInteger();
 
     /**
      * Creates an instance with the cache limit as provided. When hooked up to a
@@ -27,10 +29,13 @@ public class CapacityBasedBufferMonitor implements IBufferMonitor {
 
     @Override
     public void eventAdded(final LoggingEvent event, final IFlushAndPublish cache) {
-        count++;
+        int count = countRef.incrementAndGet();
         if (count >= cacheLimit) {
-            cache.flushAndPublish();
-            count = 0;
+            try {
+                cache.flushAndPublish();
+            } finally {
+                countRef.set(0);
+            }
         }
     }
 
