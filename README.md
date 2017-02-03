@@ -38,11 +38,13 @@ The `s3loggerjar-x.y.z.jar` is the only JAR/dependency you need for your program
 ### General
 In addition to the typical appender configuration (such as layout, Threshold, etc.), these common properties control the appender in general:
 *  **stagingBufferSize** -- the number of entries to collect for a batch before publishing (default is 2000).
+*  **stagingBufferAge** -- (optional) if specified, the number of *minutes* to wait before publishing a batch. If used,
+         this parameter will override the condition set by *stagingBufferSize*. The value must be >= 1.
 *  **tags** -- comma-separated tokens to associate to the log entries (used mainly for search filtering). Examples:
     *  `production,webserver`
     *  `qa,database`
 
-A sample snippet from `log4j.properties`:
+A sample snippet from `log4j.properties` to publish whenever 2500 events are collected:
 ```
 log4j.appender.S3Appender=org.van.logging.log4j.S3LogAppender
 log4j.appender.S3Appender.layout=org.apache.log4j.PatternLayout
@@ -51,6 +53,17 @@ log4j.appender.S3Appender.Threshold=WARN
 
 log4j.appender.S3Appender.tags=TEST,ONE,TWO
 log4j.appender.S3Appender.stagingBufferSize=2500
+```
+
+or, if a time-based publishing policy is desired (e.g. publish every 15 minutes):
+```
+log4j.appender.S3Appender=org.van.logging.log4j.S3LogAppender
+log4j.appender.S3Appender.layout=org.apache.log4j.PatternLayout
+log4j.appender.S3Appender.layout.conversionPattern=%d %p [%t] %c %m
+log4j.appender.S3Appender.Threshold=WARN
+
+log4j.appender.S3Appender.tags=TEST,ONE,TWO
+log4j.appender.S3Appender.stagingBufferAge=15
 ```
 
 ### S3
