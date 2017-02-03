@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
-import org.van.logging.LoggingEventCache.ICachePublisher;
+import org.van.logging.IBufferPublisher;
 import org.van.logging.PublishContext;
 
 /**
@@ -17,7 +17,7 @@ import org.van.logging.PublishContext;
  * @author vly
  *
  */
-public class CachePublisher implements ICachePublisher {
+public class BufferPublisher implements IBufferPublisher {
 	private final Layout layout;
 	private final String hostName;
 	private final String[] tags;
@@ -25,7 +25,7 @@ public class CachePublisher implements ICachePublisher {
 	private List<IPublishHelper> helpers = 
 		new LinkedList<>();
 	
-	public CachePublisher(Layout layout, String hostName, String[] tags) {
+	public BufferPublisher(Layout layout, String hostName, String[] tags) {
 		this.layout = layout;	
 		this.hostName = hostName;
 		this.tags = tags;
