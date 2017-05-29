@@ -75,18 +75,18 @@ These properties (**please use your own values**) control how the logs will be s
 AWS credentials are required to interact with S3.  The recommended way is using either 1) instance profiles (when working with EC2 instances) or 2) creating `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials`.
 
 These properties can also be overridden in Log4j configuration for `S3LogAppender`:
-* **s3AccessKey** and **s3SecretKey** -- access and secret keys.  
+* **s3AwsKey** and **s3AwsSecret** -- access and secret keys.  
 When these properties are present in the configuration, they *take precedence over* the default sources in the credential chain as described earlier.
 
-A sample snippet from `log4j.properties` (with the optional s3AccessKey and s3SecretKey properties set):
+A sample snippet from `log4j.properties` (with the optional s3AwsKey and s3AwsSecret properties set):
 ```
 log4j.appender.S3Appender.s3Region=us-west-2
 log4j.appender.S3Appender.s3Bucket=acmecorp
 log4j.appender.S3Appender.s3Path=logs/myApplication/
 
 # Optional access and secret keys
-log4j.appender.S3Appender.s3AccessKey=CMSADEFHASFHEUCBEOERUE
-log4j.appender.S3Appender.s3SecretKey=ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF
+log4j.appender.S3Appender.s3AwsKey=CMSADEFHASFHEUCBEOERUE
+log4j.appender.S3Appender.s3AwsSecret=ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF
 ```
 
 The final S3 key used in the bucket follows the format:
