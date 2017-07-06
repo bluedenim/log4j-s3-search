@@ -8,15 +8,22 @@
       <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m"/>
       <verbose>false</verbose>
 
-        <!-- Uncomment AND configure the lines below to enable upload to S3 -->
-        <!--<s3Bucket>mybucket</s3Bucket>-->
-        <!--<s3Path>logs/exampleApplication2/</s3Path>-->
-        <!--<s3Region>us-west-2</s3Region>-->
+      <!-- Examples of optional tags to attach to entries (applicable only to SOLR & Elasticsearch)-->
+      <tags>TEST,ONE,TWO;THREE</tags>
 
-        <!-- Uncomment AND configure the line below to enable upload to SOLR -->
+      <stagingBufferSize>15</stagingBufferSize>
+      <!-- Uncomment below to override stagingBufferSize and to attempt a publish every 15 minutes -->
+        <!--<stagingBufferAge>15</stagingBufferAge>-->
+
+      <!-- Uncomment AND configure the lines below to enable upload to S3 -->
+        <s3Bucket>vandotorg</s3Bucket>
+        <s3Path>logs/exampleApplication2/</s3Path>
+        <s3Region>us-west-2</s3Region>
+
+      <!-- Uncomment AND configure the line below to enable upload to SOLR -->
         <!--<solrUrl>http://localhost:8983/solr/gettingstarted/</solrUrl>-->
 
-        <!-- Uncomment AND configure the lines below to enable upload to Elasticsearch -->
+      <!-- Uncomment AND configure the lines below to enable upload to Elasticsearch -->
         <!--<elasticsearchHosts>localhost:9300</elasticsearchHosts>-->
         <!--<elasticsearchCluster>elasticsearch</elasticsearchCluster>-->
         <!--<elasticsearchIndex>logindex</elasticsearchIndex>-->
