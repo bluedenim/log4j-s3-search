@@ -18,20 +18,50 @@ Download the code and build the .jar to include in your program.  The code is 10
 mvn clean package 
 ```
 
-### Running the sample
-To run the sample program **s3loggersample**, some additional steps:
+## Log4j vs. Log4j2
+Starting with release 0.2.0, the project is broken up into several modules:
+
+* **appender-core** -- Log4j version-agnostic logic that deals with maintaining the log staging buffer and publishing to external stores.
+* **appender-log4j** -- Log4j 1.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 1.x.
+* **appender-log4j2** -- Log4j 2.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 2.x.
+* **appender-log4j-sample** -- a sample client illustrating how to use the project with Log4j 1.x.
+* **appender-log4j2-sample** -- a sample client illustrating how to use the project with Log4j 2.x.
+
+## Running the sample programs
+
+### Log4j Example
+To run the sample program **appender-log4j-sample**:
 
 ```
-cd s3loggersample
-mvn assembly:assembly
-java -cp target\s3loggersample-0.0.4-jar-with-dependencies.jar org.van.example.Main
+cd appender-log4j-sample
 ```
+Modify `src\main\resources\log4j.properties` to use _your S3 bucket, path, and region_.
+```
+mvn clean install
+mvn assembly:assembly
+java -cp target\log4j-s3-search-log4j-sample-jar-with-dependencies.jar com.van.example.Main
+```
+
+### Log4j 2.x Example
+To run the sample program **appender-log4j2-sample**:
+
+```
+cd appender-log4j2-sample
+```
+Modify `src\main\resources\log4j2.xml` to use _your S3 bucket, path, and region_.
+```
+mvn clean install
+java -cp target\log4j-s3-search-log4j2-sample.jar com.van.example.Main
+```
+
+_There is currently some complication w/ Log4j 2 such that the packaging is done differently than 
+that for the Log4j 1.x example. The method used is documented [here.](https://stackoverflow.com/questions/34945438/log4j2-configuration-not-found-when-running-standalone-application-builded-by-sh/34946780)_
 
 ## Usage
-The `s3loggerjar-x.y.z.jar` is the only JAR/dependency you need for your program. You can see how a sample program can be set up by looking at how **s3loggersample** uses the jar:
+* Find out which version of Log4j your client program is using.
+  * If you're using **Log4j 1.x**, you should add **appender-core** and **appender-log4j** as dependencies. (See **appender-log4j-sample** for an example of how it's done.)
+  * If you're using **Log4j 2.x**, you should add **appender-core** and **appender-log4j2** as dependencies. (See **appender-log4j2-sample** for an example of how it's done.)
 
-* You will need to either build or download a prebuilt `s3loggerjar-x.y.z.jar` (e.g. from the `dist/` subdir) and add that to your program's dependency.
-* You will need to add (create if necessary) a `log4j.properties` file for you program that configures the logger appender. Again, you can see how it is done in the **s3loggersample** module.
 
 
 ## Configuration
@@ -43,6 +73,8 @@ In addition to the typical appender configuration (such as layout, Threshold, et
 *  **tags** -- comma-separated tokens to associate to the log entries (used mainly for search filtering). Examples:
     *  `production,webserver`
     *  `qa,database`
+
+_All the examples here are using the log4j.properties format for Log4j 1.x. See the module **appender-log4j2-sample** to find out how to do it for Log4j 2.x._
 
 A sample snippet from `log4j.properties` to publish whenever 2500 events are collected:
 ```
