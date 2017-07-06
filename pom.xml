@@ -1,11 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.van</groupId>
-    <artifactId>s3logger</artifactId>
-    <version>0.1.2</version>
-    <name>s3logger</name>
-    <description>Log4j Appender to transfer to AWS S3 and Apache Solr</description>
+    <groupId>com.van</groupId>
+    <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
+    <version>2.0</version>
+    <name>log4j-s3-search</name>
 
     <properties>
         <file.encoding>UTF-8</file.encoding>
@@ -13,31 +13,31 @@
     </properties>
 
     <modules>
-        <module>s3loggerjar</module>
-        <module>s3loggersample</module>
+        <module>appender-core</module>
+        <module>appender-log4j</module>
+        <module>appender-log4j-sample</module>
+        <module>appender-log4j2</module>
+        <module>appender-log4j2-sample</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>1.2.17</version>
-            </dependency>
-            <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk</artifactId>
-                <version>1.10.49</version>
+                <version>1.11.158</version>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.solr</groupId>
                 <artifactId>solr-solrj</artifactId>
-                <version>5.0.0</version>
+                <version>6.6.0</version>
             </dependency>
+
             <dependency>
                 <groupId>org.elasticsearch.client</groupId>
                 <artifactId>transport</artifactId>
-                <version>5.0.1</version>
+                <version>5.4.3</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -51,6 +51,7 @@
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
+                        <compilerArgument>-Xlint:unchecked</compilerArgument>
                     </configuration>
                 </plugin>
                 <plugin>
