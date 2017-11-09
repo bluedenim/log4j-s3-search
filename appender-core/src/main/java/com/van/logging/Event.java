@@ -1,11 +1,14 @@
 package com.van.logging;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * An event to be published. This class is an agnostic version of Log4j's LoggingEvent.
  */
-public class Event {
+public class Event implements Serializable {
+
+    static final long serialVersionUID = 1000L;
 
     private final String source;
     private final String type;
@@ -42,5 +45,10 @@ public class Event {
 
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s:%s:%s", threadName, source, type, message);
     }
 }

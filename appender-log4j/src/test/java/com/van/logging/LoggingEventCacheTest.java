@@ -52,16 +52,21 @@ public class LoggingEventCacheTest {
             public void endPublish(PublishContext context) {
             }
         };
-        LoggingEventCache cache = new LoggingEventCache(
-            "blah", new CapacityBasedBufferMonitor(BATCH_SIZE), publisher);
-        for (int i = 0; i < EVENT_COUNT; i++) {
-            cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
-                String.format("Event %d", i),
-                null));
+        try {
+            LoggingEventCache cache = new LoggingEventCache(
+                "blah", new CapacityBasedBufferMonitor(BATCH_SIZE), publisher);
+            for (int i = 0; i < EVENT_COUNT; i++) {
+                cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
+                    String.format("Event %d", i),
+                    null));
+            }
+            cache.flushAndPublish();
+            Thread.sleep(1000); // Give the publishing thread some time to finish
+            // The events list should contain eventCount entries if we published without skipping
+            Assert.assertEquals("All events published", EVENT_COUNT, events.size());
+        } catch (Exception ex) {
+            Assert.fail(String.format("Unexpected exception: %s", ex));
         }
-        cache.flushAndPublish();
-        // The events list should contain eventCount entries if we published without skipping
-        Assert.assertEquals("All events published", EVENT_COUNT, events.size());
     }
 
     @Test
@@ -84,28 +89,32 @@ public class LoggingEventCacheTest {
             public void endPublish(PublishContext context) {
             }
         };
-        LoggingEventCache cache = new LoggingEventCache(
-            "blah", new TimePeriodBasedBufferMonitor(BATCH_PERIOD_SECS, TimeUnit.SECONDS), publisher);
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < EVENT_COUNT; i++) {
-            cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
-                String.format("Event %d", i),
-                null));
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        try {
+            LoggingEventCache cache = new LoggingEventCache(
+                "blah", new TimePeriodBasedBufferMonitor(BATCH_PERIOD_SECS, TimeUnit.SECONDS), publisher);
+            long start = System.currentTimeMillis();
+            for (int i = 0; i < EVENT_COUNT; i++) {
+                cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
+                    String.format("Event %d", i),
+                    null));
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }
-        long now = System.currentTimeMillis();
-        while (now - start < 10000) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            long now = System.currentTimeMillis();
+            while (now - start < 10000) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                now = System.currentTimeMillis();
             }
-            now = System.currentTimeMillis();
+            Assert.assertEquals("All events published", EVENT_COUNT, events.size());
+        } catch (Exception ex) {
+            Assert.fail(String.format("Unexpected exception: %s", ex));
         }
-        Assert.assertEquals("All events published", EVENT_COUNT, events.size());
     }
 }
