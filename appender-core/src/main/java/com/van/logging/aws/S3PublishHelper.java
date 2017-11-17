@@ -1,16 +1,15 @@
 package com.van.logging.aws;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.van.logging.Event;
 import com.van.logging.IPublishHelper;
 import com.van.logging.PublishContext;
 import org.apache.http.entity.ContentType;
 
-import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 
 /**
  * Implementation to publish log events to S3.
@@ -38,7 +37,10 @@ public class S3PublishHelper implements IPublishHelper<Event> {
     private final String path;
 
     private volatile boolean bucketExists = false;
-    private volatile StringBuilder stringBuilder;
+
+    private File tempFile;
+    private Writer outputWriter;
+
 
     public S3PublishHelper(AmazonS3Client client, String bucket, String path) {
         this.client = client;
@@ -50,43 +52,70 @@ public class S3PublishHelper implements IPublishHelper<Event> {
         }
     }
 
-    public void publish(PublishContext context, int sequence, Event event) {
-        stringBuilder.append(event.getMessage())
-            .append(LINE_SEPARATOR);
-    }
-
     public void start(PublishContext context) {
-        stringBuilder = new StringBuilder();
-        if (!bucketExists) {
-            bucketExists = client.doesBucketExist(bucket);
+        try {
+            tempFile = File.createTempFile("s3Publish", null);
+            outputWriter = new OutputStreamWriter(
+                new BufferedOutputStream(new FileOutputStream(tempFile)));
+//            System.out.println(
+//                String.format("Collecting content into %s before sending to S3.", tempFile));
+
             if (!bucketExists) {
-                client.createBucket(bucket);
-                bucketExists = true;
+                bucketExists = client.doesBucketExist(bucket);
+                if (!bucketExists) {
+                    client.createBucket(bucket);
+                    bucketExists = true;
+                }
             }
+        } catch (Exception ex) {
+            throw new RuntimeException("Cannot start publishing.", ex);
         }
     }
+
+    public void publish(PublishContext context, int sequence, Event event) {
+        try {
+            outputWriter.write(event.getMessage());
+            outputWriter.write(LINE_SEPARATOR);
+        } catch (Exception ex) {
+            throw new RuntimeException(
+                String.format("Cannot collect event %s.", event), ex);
+        }
+    }
+
 
     public void end(PublishContext context) {
         String key = String.format("%s%s", path, context.getCacheName());
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
 			bucket, key)); */
 
-        String data = stringBuilder.toString();
-		/* System.out.println(data); */
         try {
-            ObjectMetadata metadata = new ObjectMetadata();
-            byte bytes[] = data.getBytes("UTF-8");
-            metadata.setContentLength(bytes.length);
-            metadata.setContentType(ContentType.TEXT_PLAIN.getMimeType());
-            ByteArrayInputStream is = new ByteArrayInputStream(bytes);
-            PutObjectResult result = client.putObject(bucket,
-                key, is, metadata);
-			/* System.out.println(String.format("Content MD5: %s",
-				result.getContentMd5())); */
+            if (null != outputWriter) {
+                outputWriter.close();
+                outputWriter = null;
+//                System.out.println(String.format("Publishing content of %s to S3.", tempFile));
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentLength(tempFile.length());
+                metadata.setContentType(ContentType.DEFAULT_BINARY.getMimeType());
+
+                PutObjectRequest por = new PutObjectRequest(bucket, key, tempFile);
+                por.setMetadata(metadata);
+
+                PutObjectResult result = client.putObject(por);
+                /* System.out.println(String.format("Content MD5: %s",
+                    result.getContentMd5())); */
+            }
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            throw new RuntimeException("Cannot publish to S3.", ex);
+        } finally {
+            if (null != tempFile) {
+                try {
+                    tempFile.delete();
+                    tempFile = null;
+                } catch (Exception ex) {
+                }
+            }
         }
-        stringBuilder = null;
     }
 
 }
