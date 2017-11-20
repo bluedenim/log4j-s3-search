@@ -16,12 +16,12 @@
         <!--<stagingBufferAge>15</stagingBufferAge>-->
 
       <!-- Uncomment AND configure the lines below to enable upload to S3 -->
-        <s3Bucket>vandotorg</s3Bucket>
-        <s3Path>logs/exampleApplication2/</s3Path>
-        <s3Region>us-west-2</s3Region>
+        <!--<s3Bucket>mybucket</s3Bucket>-->
+        <!--<s3Path>logs/exampleApplication2/</s3Path>-->
+        <!--<s3Region>us-west-2</s3Region>-->
 
       <!-- Uncomment below to apply GZIP compression on content sent to S3 -->
-        <s3Compression>true</s3Compression>
+        <!--<s3Compression>true</s3Compression>-->
 
       <!-- Uncomment AND configure the line below to enable upload to SOLR -->
         <!--<solrUrl>http://localhost:8983/solr/gettingstarted/</solrUrl>-->
