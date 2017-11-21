@@ -10,6 +10,8 @@ import com.van.logging.PublishContext;
 import org.apache.http.entity.ContentType;
 
 import java.io.*;
+import java.util.Objects;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Implementation to publish log events to S3.
@@ -35,6 +37,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
     private final AmazonS3Client client;
     private final String bucket;
     private final String path;
+    private boolean compressEnabled = false;
 
     private volatile boolean bucketExists = false;
 
@@ -42,7 +45,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
     private Writer outputWriter;
 
 
-    public S3PublishHelper(AmazonS3Client client, String bucket, String path) {
+    public S3PublishHelper(AmazonS3Client client, String bucket, String path, boolean compressEnabled) {
         this.client = client;
         this.bucket = bucket.toLowerCase();
         if (!path.endsWith("/")) {
@@ -50,15 +53,18 @@ public class S3PublishHelper implements IPublishHelper<Event> {
         } else {
             this.path = path;
         }
+        this.compressEnabled = compressEnabled;
     }
 
     public void start(PublishContext context) {
         try {
             tempFile = File.createTempFile("s3Publish", null);
-            outputWriter = new OutputStreamWriter(
-                new BufferedOutputStream(new FileOutputStream(tempFile)));
-//            System.out.println(
-//                String.format("Collecting content into %s before sending to S3.", tempFile));
+            OutputStream os = createCompressedStreamAsNecessary(
+                new BufferedOutputStream(new FileOutputStream(tempFile)),
+                compressEnabled);
+            outputWriter = new OutputStreamWriter(os);
+            //  System.out.println(
+            //      String.format("Collecting content into %s before sending to S3.", tempFile));
 
             if (!bucketExists) {
                 bucketExists = client.doesBucketExist(bucket);
@@ -68,7 +74,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
                 }
             }
         } catch (Exception ex) {
-            throw new RuntimeException("Cannot start publishing.", ex);
+            throw new RuntimeException(String.format("Cannot start publishing: %s", ex.getMessage()), ex);
         }
     }
 
@@ -78,7 +84,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
             outputWriter.write(LINE_SEPARATOR);
         } catch (Exception ex) {
             throw new RuntimeException(
-                String.format("Cannot collect event %s.", event), ex);
+                String.format("Cannot collect event %s: %s", event, ex.getMessage()), ex);
         }
     }
 
@@ -92,7 +98,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
             if (null != outputWriter) {
                 outputWriter.close();
                 outputWriter = null;
-//                System.out.println(String.format("Publishing content of %s to S3.", tempFile));
+                // System.out.println(String.format("Publishing content of %s to S3.", tempFile));
                 ObjectMetadata metadata = new ObjectMetadata();
                 metadata.setContentLength(tempFile.length());
                 metadata.setContentType(ContentType.DEFAULT_BINARY.getMimeType());
@@ -106,7 +112,8 @@ public class S3PublishHelper implements IPublishHelper<Event> {
             }
         } catch (UnsupportedEncodingException e) {
         } catch (Exception ex) {
-            throw new RuntimeException("Cannot publish to S3.", ex);
+            throw new RuntimeException(
+                String.format("Cannot publish to S3: %s", ex.getMessage()), ex);
         } finally {
             if (null != tempFile) {
                 try {
@@ -118,4 +125,14 @@ public class S3PublishHelper implements IPublishHelper<Event> {
         }
     }
 
+    static OutputStream createCompressedStreamAsNecessary(
+        OutputStream outputStream, boolean compressEnabled) throws IOException {
+        Objects.requireNonNull(outputStream);
+        if (compressEnabled) {
+            // System.out.println("Content will be compressed.");
+            return new GZIPOutputStream(outputStream);
+        } else {
+            return outputStream;
+        }
+    }
 }

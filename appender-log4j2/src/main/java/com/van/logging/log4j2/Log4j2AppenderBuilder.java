@@ -52,6 +52,8 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     @PluginBuilderAttribute
     private String s3AwsSecret;
 
+    @PluginBuilderAttribute
+    private String s3Compression;
 
     // Solr properties
     @PluginBuilderAttribute
@@ -151,7 +153,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
                     "Registering S3 publish helper -> %s:%s", s3Bucket, s3Path));
             }
             publisher.addHelper(new S3PublishHelper((AmazonS3Client)client,
-                s3Bucket, s3Path));
+                s3Bucket, s3Path, Boolean.parseBoolean(s3Compression)));
         });
 
         getSolrConfigurationIfEnabled(solrUrl).ifPresent(config -> {
