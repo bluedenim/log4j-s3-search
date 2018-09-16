@@ -9,9 +9,9 @@
     <description>Example of a program using log4j-s3-search-appender with Log4j 2.x</description>
 
     <parent>
-        <groupId>com.van</groupId>
+        <groupId>com.therealvan</groupId>
         <artifactId>log4j-s3-search</artifactId>
-        <version>2.0</version>
+        <version>0.3.0</version>
     </parent>
 
     <properties>
@@ -22,9 +22,9 @@
         <!-- the sample program will control its own AWS and Log4j 1.x dependency, so
              exclude whatever's coming from the appender-log4j1 -->
         <dependency>
-            <groupId>com.van</groupId>
+            <groupId>com.therealvan</groupId>
             <artifactId>appender-log4j2</artifactId>
-            <version>2.0</version>
+            <version>0.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
