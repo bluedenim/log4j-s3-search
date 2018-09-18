@@ -8,11 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Implementation of {@link IBufferMonitor} that flushes the cache when a specified time period
  * has transpired since the first event was added.
- * <br/>
+ * <br>
  * NOTE that, for this monitor to flush a cache for a time period, the cache must have at least
  * one event added in the period. In fact, the first event added will start a timer that will
  * count down until the time period expires. At which time the cache will be flushed and published.
- * <br/>
+ * <br>
  * This means that, if there were ever a relatively "quiet" period when there isn't at least
  * one event added to the cache, then nothing will be flushed and published.
  */

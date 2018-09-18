@@ -8,10 +8,10 @@ import java.util.concurrent.Future;
  */
 public interface IFlushAndPublish {
     /**
-     * Flush and publish cached content and return a {@link Future <Boolean>}
+     * Flush and publish cached content and return a Future &lt;Boolean&gt;
      * for the result.
      *
-     * @return {@link Future<Boolean>} for the result. This CAN BE
+     * @return Future &lt;Boolean&gt; for the result. This CAN BE
      * <code>null</code> if there was nothing published.
      */
     Future<Boolean> flushAndPublish();

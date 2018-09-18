@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.van</groupId>
+    <groupId>com.therealvan</groupId>
     <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
-    <version>2.0</version>
+    <version>2.0.0</version>
     <name>log4j-s3-search</name>
 
     <properties>

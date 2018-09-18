@@ -102,7 +102,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      * Publish the current staging log to remote stores if the staging log
      * is not empty.
      *
-     * @return a {@link Future <Boolean>} representing the result of the flush
+     * @return a Future &lt;Boolean&gt; representing the result of the flush
      * and publish operation. Caller can call {@link Future#get()} on it to
      * wait for the operation. NOTE: This value CAN BE null if there was nothing
      * to publish.
