@@ -62,6 +62,21 @@ that for the Log4j 1.x example. The method used is documented [here.](https://st
   * If you're using **Log4j 1.x**, you should add **appender-core** and **appender-log4j** as dependencies. (See **appender-log4j-sample** for an example of how it's done.)
   * If you're using **Log4j 2.x**, you should add **appender-core** and **appender-log4j2** as dependencies. (See **appender-log4j2-sample** for an example of how it's done.)
 
+### Maven Dependencies
+The jars are **finally** in MVN Repo:
+
+* [appender-core](https://mvnrepository.com/artifact/com.therealvan/appender-core/2.0.0)
+* [appender-log4j](https://mvnrepository.com/artifact/com.therealvan/appender-log4j/2.0.0)
+* [appender-log4j2](https://mvnrepository.com/artifact/com.therealvan/appender-log4j2/2.0.0)
+ 
+Much thanks to [Lapkritinis](https://github.com/Lapkritinis) for filing
+[issue 29](https://github.com/bluedenim/log4j-s3-search/issues/29) with
+a helpful link to get me off my lazy bum and start publishing into [mvnrepository](https://mvnrepository.com/search?q=therealvan).
+
+### Obsolete versions
+**We are at version 2.0.0 right now**. 
+
+_Please ignore versions **2.0** and **0.3.0**_.
 
 
 ## Configuration
