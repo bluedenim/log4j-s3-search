@@ -69,6 +69,34 @@ The jars are **finally** in MVN Repo:
 * [appender-log4j](https://mvnrepository.com/artifact/com.therealvan/appender-log4j/2.0.0)
 * [appender-log4j2](https://mvnrepository.com/artifact/com.therealvan/appender-log4j2/2.0.0)
  
+For example, when coding with Log4j 1.x:
+```
+<dependency>
+    <groupId>com.therealvan</groupId>
+    <artifactId>appender-core</artifactId>
+    <version>2.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.therealvan</groupId>
+    <artifactId>appender-log4j</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+
+Similarly, when coding with Log4j 2.x:
+```
+<dependency>
+    <groupId>com.therealvan</groupId>
+    <artifactId>appender-core</artifactId>
+    <version>2.0.0</version>
+</dependency>
+<dependency>
+    <groupId>com.therealvan</groupId>
+    <artifactId>appender-log4j2</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+ 
 Much thanks to [Lapkritinis](https://github.com/Lapkritinis) for filing
 [issue 29](https://github.com/bluedenim/log4j-s3-search/issues/29) with
 a helpful link to get me off my lazy bum and start publishing into [mvnrepository](https://mvnrepository.com/search?q=therealvan).
