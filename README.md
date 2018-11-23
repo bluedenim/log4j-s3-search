@@ -19,7 +19,7 @@ mvn clean package
 ```
 
 ## Log4j vs. Log4j2
-Starting with release 0.2.0, the project is broken up into several modules:
+The project is broken up into several modules:
 
 * **appender-core** -- Log4j version-agnostic logic that deals with maintaining the log staging buffer and publishing to external stores.
 * **appender-log4j** -- Log4j 1.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 1.x.
@@ -65,21 +65,21 @@ that for the Log4j 1.x example. The method used is documented [here.](https://st
 ### Maven Dependencies
 The jars are **finally** in MVN Repo:
 
-* [appender-core](https://mvnrepository.com/artifact/com.therealvan/appender-core/2.0.0)
-* [appender-log4j](https://mvnrepository.com/artifact/com.therealvan/appender-log4j/2.0.0)
-* [appender-log4j2](https://mvnrepository.com/artifact/com.therealvan/appender-log4j2/2.0.0)
+* [appender-core](https://mvnrepository.com/artifact/com.therealvan/appender-core/2.1.0)
+* [appender-log4j](https://mvnrepository.com/artifact/com.therealvan/appender-log4j/2.1.0)
+* [appender-log4j2](https://mvnrepository.com/artifact/com.therealvan/appender-log4j2/2.1.0)
  
 For example, when coding with Log4j 1.x:
 ```
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-core</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
@@ -88,12 +88,12 @@ Similarly, when coding with Log4j 2.x:
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-core</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j2</artifactId>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
 </dependency>
 ```
  
@@ -102,9 +102,9 @@ Much thanks to [Lapkritinis](https://github.com/Lapkritinis) for filing
 a helpful link to get me off my lazy bum and start publishing into [mvnrepository](https://mvnrepository.com/search?q=therealvan).
 
 ### Obsolete versions
-**We are at version 2.0.0 right now**. 
+**We are at version 2.1.0 right now**. 
 
-_Please ignore versions **2.0** and **0.3.0**_.
+_Please ignore the non-semver versions **2.0** and **0.3.0**_.
 
 
 ## Configuration
@@ -143,9 +143,19 @@ log4j.appender.S3Appender.stagingBufferAge=15
 
 ### S3
 These properties (**please use your own values**) control how the logs will be stored in S3:
-* **s3Region** -- the AWS region to use (e.g. "us-west-2").
 * **s3Bucket** -- the S3 bucket to use.  The logger will attempt to create this bucket if it doesn't already exist.
-* **s3Path** -- the path to the uploaded files (key prefix under the hood)
+* **s3Path** -- the path to the uploaded files (S3 key prefix under the hood)
+
+These properties determine how to connect to S3:
+* **s3Region** -- the AWS region to use (e.g. "us-west-2").
+* **s3ServiceEndpoint** -- the service endpoint to use instead of the default.
+* **s3SigningRegion** -- the region to use for signing requests.
+
+Use either:
+  - **s3Region** or
+  - **s3ServiceEndpoint** and **s3SigningRegion**
+
+but not all three simultaneously. You will get an error from AWS if you use all three.
 
 AWS credentials are required to interact with S3.  The recommended way is using either 1) instance profiles (when working with EC2 instances) or 2) creating `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials`.
 
