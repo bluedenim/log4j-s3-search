@@ -18,6 +18,9 @@ public class S3Configuration {
     private String bucket = null;
     private String path = DEFAULT_LOG_BUCKETPATH;
 
+    private String serviceEndpoint = null;
+    private String signingRegion = null;
+
     public String getAccessKey() {
         return accessKey;
     }
@@ -58,6 +61,19 @@ public class S3Configuration {
     }
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getServiceEndpoint() {
+        return serviceEndpoint;
+    }
+    public void setServiceEndpoint(String serviceEndpoint) {
+        this.serviceEndpoint = serviceEndpoint;
+    }
+    public String getSigningRegion() {
+        return signingRegion;
+    }
+    public void setSigningRegion(String signingRegion) {
+        this.signingRegion = signingRegion;
     }
 
     /**
