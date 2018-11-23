@@ -1,10 +1,8 @@
 package com.van.logging.log4j2;
 
-
-import com.amazonaws.AmazonWebServiceClient;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.van.logging.*;
-import com.van.logging.aws.AwsClientBuilder;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
@@ -19,6 +17,8 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.van.logging.aws.AwsClientHelpers.buildClient;
 
 public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder
     implements org.apache.logging.log4j.core.util.Builder<Log4j2Appender> {
@@ -51,6 +51,12 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
 
     @PluginBuilderAttribute
     private String s3AwsSecret;
+
+    @PluginBuilderAttribute
+    private String s3ServiceEndpoint;
+
+    @PluginBuilderAttribute
+    private String s3SigningRegion;
 
     @PluginBuilderAttribute
     private String s3Compression;
@@ -103,7 +109,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         return appender;
     }
 
-    Optional<AmazonWebServiceClient> initS3ClientIfEnabled() {
+    Optional<AmazonS3> initS3ClientIfEnabled() {
         Optional<S3Configuration> s3 = Optional.empty();
         if ((null != s3Bucket) && (null != s3Path)) {
             S3Configuration config = new S3Configuration();
@@ -112,12 +118,15 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setRegion(s3Region);
             config.setAccessKey(s3AwsKey);
             config.setSecretKey(s3AwsSecret);
+            config.setServiceEndpoint(s3ServiceEndpoint);
+            config.setSigningRegion(s3SigningRegion);
             s3 = Optional.of(config);
         }
-        return s3.map(config ->
-            new AwsClientBuilder(config.getRegion(),
-                                 config.getAccessKey(),
-                                 config.getSecretKey()).build(AmazonS3Client.class));
+        return s3.map(config -> buildClient(
+            config.getAccessKey(), config.getSecretKey(),
+            config.getRegion(),
+            config.getServiceEndpoint(), config.getSigningRegion()
+        ));
     }
 
     static Optional<SolrConfiguration> getSolrConfigurationIfEnabled(String solrUrl) {

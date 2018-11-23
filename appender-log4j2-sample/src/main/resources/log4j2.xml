@@ -18,7 +18,11 @@
       <!-- Uncomment AND configure the lines below to enable upload to S3 -->
         <!--<s3Bucket>mybucket</s3Bucket>-->
         <!--<s3Path>logs/exampleApplication2/</s3Path>-->
+
         <!--<s3Region>us-west-2</s3Region>-->
+        <!-- NOTE: Only s3Region above or (s3ServiceEndpoint + s3SigningRegion) below can be used at one time -->
+        <!--<s3ServiceEndpoint>...</s3ServiceEndpoint>-->
+        <!--<s3SigningRegion>...</s3SigningRegion>-->
 
       <!-- Uncomment below to apply GZIP compression on content sent to S3 -->
         <!--<s3Compression>true</s3Compression>-->

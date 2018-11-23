@@ -1,9 +1,7 @@
 package com.van.logging.log4j;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.van.logging.*;
-import com.van.logging.aws.AwsClientBuilder;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
@@ -18,6 +16,8 @@ import org.apache.log4j.spi.OptionHandler;
 
 import java.net.URL;
 import java.util.UUID;
+
+import static com.van.logging.aws.AwsClientHelpers.buildClient;
 
 /**
  * The log appender adapter that hooks into the Log4j framework to collect
@@ -155,6 +155,14 @@ public class Log4jAppender extends AppenderSkeleton
         getS3().setSecretKey(secretKey);
     }
 
+    public void setS3ServiceEndpoint(String serviceEndpoint) {
+        getS3().setServiceEndpoint(serviceEndpoint);
+    }
+
+    public void setS3SigningRegion(String signingRegion) {
+        getS3().setSigningRegion(signingRegion);
+    }
+
     public void setS3Compression(String enable) {
         s3Compression = Boolean.parseBoolean(enable);
     }
@@ -227,10 +235,11 @@ public class Log4jAppender extends AppenderSkeleton
             java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
             hostName = addr.getHostName();
             if (null != s3) {
-                AwsClientBuilder builder =
-                    new AwsClientBuilder(s3.getRegion(),
-                        s3.getAccessKey(), s3.getSecretKey());
-                s3Client = (AmazonS3Client) builder.build(AmazonS3Client.class);
+                s3Client = (AmazonS3Client)buildClient(
+                    s3.getAccessKey(), s3.getSecretKey(),
+                    s3.getRegion(),
+                    s3.getServiceEndpoint(), s3.getSigningRegion()
+                );
             }
             initStagingLog();
         } catch (Exception ex) {
