@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>appender-log4j-sample</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
     <name>appender-log4j-sample</name>
     <description>Example of a program using log4j-s3-search-appender with Log4j 1.x</description>
 
     <parent>
         <groupId>com.therealvan</groupId>
         <artifactId>log4j-s3-search</artifactId>
-        <version>2.1.0</version>
+        <version>2.1.1</version>
     </parent>
 
     <properties>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.therealvan</groupId>
             <artifactId>appender-log4j</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>

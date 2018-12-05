@@ -1,11 +1,33 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.therealvan</groupId>
     <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
     <name>log4j-s3-search</name>
+    <description>Parent POM for the log4j-s3-search project and used by appender-core, appender-log4j, and appender-log4j2 projects.</description>
+    <url>https://github.com/bluedenim/log4j-s3-search</url>
+    <developers>
+        <developer>
+	    <id>vancly</id>
+	    <name>Van Ly</name>
+	    <email>vancly@hotmail.com</email>
+	    <url>http://www.therealvan.com/</url>
+	    <organization>TheRealVan</organization>
+	    <organizationUrl>http://www.therealvan.com/</organizationUrl>
+            <roles>
+                <role>developer</role>
+	    </roles>
+	    <timezone>America/Los_Angeles</timezone>
+	</developer>
+    </developers>
+    <licenses>
+	<license>
+	    <name>The MIT License (MIT)</name>
+	    <url>https://github.com/bluedenim/log4j-s3-search/blob/master/LICENSE.md</url>
+	    <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
         <file.encoding>UTF-8</file.encoding>
@@ -47,7 +69,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
+                    <version>3.8.0</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -66,7 +88,85 @@
                         </descriptorRefs>
                     </configuration>
                 </plugin>
+
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.8.2</version>
+                    <executions>
+                        <execution>
+                            <id>default-deploy</id>
+                            <phase>deploy</phase>
+                            <goals>
+                                <goal>deploy</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                    <configuration>
+                        <localCheckout>true</localCheckout>
+                        <pushChanges>false</pushChanges>
+                        <mavenExecutorId>forked-path</mavenExecutorId>
+                        <!-- <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments> -->
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.scm</groupId>
+                            <artifactId>maven-scm-provider-gitexe</artifactId>
+                            <version>1.9.5</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
+    <scm>
+        <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
+        <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
+        <url>https://github.com/dexecutor/dependent-tasks-executor</url>
+        <tag>log4j-s3-search-2.1.1</tag>
+    </scm>
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
