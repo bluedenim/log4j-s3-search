@@ -1,6 +1,6 @@
 # log4j-s3-search 
 
-(See [therealvan.com/s3loggerappender.html](http://www.therealvan.com/s3loggerappender.html) for write-up page.)
+(See [therealvan.com/s3loggerappender.html](https://www.therealvan.com/s3loggerappender.html) for write-up page.)
 
 A [Log4j appender](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Appender.html) implementation that will collect log events into a staging buffer up to a configured size to then publish to external store such as:
 *  [AWS S3](http://aws.amazon.com/s3/) for remote storage/archive.
