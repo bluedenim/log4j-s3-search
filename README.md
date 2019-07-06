@@ -111,7 +111,7 @@ _All the examples here are using the log4j.properties format for Log4j 1.x. See 
 
 A sample snippet from `log4j.properties` to publish whenever 2500 events are collected:
 ```
-log4j.appender.S3Appender=org.van.logging.log4j.S3LogAppender
+log4j.appender.S3Appender=com.van.logging.log4j.Log4jAppender
 log4j.appender.S3Appender.layout=org.apache.log4j.PatternLayout
 log4j.appender.S3Appender.layout.conversionPattern=%d %p [%t] %c %m
 log4j.appender.S3Appender.Threshold=WARN
@@ -122,7 +122,7 @@ log4j.appender.S3Appender.stagingBufferSize=2500
 
 or, if a time-based publishing policy is desired (e.g. publish every 15 minutes):
 ```
-log4j.appender.S3Appender=org.van.logging.log4j.S3LogAppender
+log4j.appender.S3Appender=com.van.logging.log4j.Log4jAppender
 log4j.appender.S3Appender.layout=org.apache.log4j.PatternLayout
 log4j.appender.S3Appender.layout.conversionPattern=%d %p [%t] %c %m
 log4j.appender.S3Appender.Threshold=WARN
@@ -146,7 +146,7 @@ Use either:
   - **s3ServiceEndpoint** and **s3SigningRegion**
 
 but not all three simultaneously. You will get an error from AWS if you use all three.
-
+Log4A
 AWS credentials are required to interact with S3.  The recommended way is using either 1) instance profiles (when working with EC2 instances) or 2) creating `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials`.
 
 These properties can also be overridden in Log4j configuration for `S3LogAppender`:
