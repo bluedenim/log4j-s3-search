@@ -31,8 +31,6 @@ import java.util.zip.GZIPOutputStream;
  *
  */
 public class S3PublishHelper implements IPublishHelper<Event> {
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-    private static final String S3ERRCODE_BUCKETALREADYOWNEDBYYOU = "BucketAlreadyOwnedByYou";
 
     private final AmazonS3Client client;
     private final String bucket;
@@ -81,7 +79,6 @@ public class S3PublishHelper implements IPublishHelper<Event> {
     public void publish(PublishContext context, int sequence, Event event) {
         try {
             outputWriter.write(event.getMessage());
-            outputWriter.write(LINE_SEPARATOR);
         } catch (Exception ex) {
             throw new RuntimeException(
                 String.format("Cannot collect event %s: %s", event, ex.getMessage()), ex);
