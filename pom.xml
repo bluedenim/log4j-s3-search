@@ -3,7 +3,7 @@
     <groupId>com.therealvan</groupId>
     <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.3.1-SNAPSHOT</version>
     <name>log4j-s3-search</name>
     <description>Parent POM for the log4j-s3-search project and used by appender-core, appender-log4j, and appender-log4j2 projects.</description>
     <url>https://github.com/bluedenim/log4j-s3-search</url>
