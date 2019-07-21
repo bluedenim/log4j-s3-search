@@ -42,7 +42,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      * is published
      * @param cachePublisher the publishing collaborator
      *
-     * @throws Exception
+     * @throws Exception if errors occurred during instantiation
      */
     public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
                              IBufferPublisher<T> cachePublisher) throws Exception {
@@ -88,7 +88,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      *
      * @param event the log event to add to the cache.
      *
-     * @throws IOException
+     * @throws IOException if exceptions occurred while dealing with I/O
      */
     public void add(T event) throws IOException {
         synchronized (bufferLock) {

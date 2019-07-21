@@ -167,6 +167,14 @@ public class Log4jAppender extends AppenderSkeleton
         s3Compression = Boolean.parseBoolean(enable);
     }
 
+    public void setS3SseKeyType(String s3SseKeyType) {
+        S3Configuration.S3SSEConfiguration sseConfig = new S3Configuration.S3SSEConfiguration(
+            S3Configuration.SSEType.valueOf(s3SseKeyType),
+            null
+        );
+        getS3().setSseConfiguration(sseConfig);
+    }
+
     // Solr properties
     ///////////////////////////////////////////////////////////////////////////
     public void setSolrUrl(String url) {
@@ -287,7 +295,10 @@ public class Log4jAppender extends AppenderSkeleton
                 System.out.println("Registering S3 publish helper");
             }
             publisher.addHelper(new S3PublishHelper(s3Client,
-                s3.getBucket(), s3.getPath(), s3Compression));
+                s3.getBucket(), s3.getPath(),
+                s3Compression,
+                s3.getSseConfiguration()
+            ));
         }
         if (null != solr) {
             URL solrUrl = solr.getUrl();
