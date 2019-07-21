@@ -11,7 +11,8 @@
       <!-- Examples of optional tags to attach to entries (applicable only to SOLR & Elasticsearch)-->
       <tags>TEST,ONE,TWO;THREE</tags>
 
-      <stagingBufferSize>15</stagingBufferSize>
+      <!-- Number of messages (lines of log) to buffer before publishing out -->
+      <stagingBufferSize>10</stagingBufferSize>
       <!-- Uncomment below to override stagingBufferSize and to attempt a publish every 15 minutes -->
         <!--<stagingBufferAge>15</stagingBufferAge>-->
 
@@ -27,8 +28,13 @@
       <!-- Uncomment below to apply GZIP compression on content sent to S3 -->
         <!--<s3Compression>true</s3Compression>-->
 
+      <!-- Uncomment below to use SSE for S3. NOTE: SSE_S3 is the only supported option right now -->
+        <!-- <s3SseKeyType>SSE_S3</s3SseKeyType> -->
+
+
       <!-- Uncomment AND configure the line below to enable upload to SOLR -->
         <!--<solrUrl>http://localhost:8983/solr/gettingstarted/</solrUrl>-->
+
 
       <!-- Uncomment AND configure the lines below to enable upload to Elasticsearch -->
         <!--<elasticsearchHosts>localhost:9300</elasticsearchHosts>-->

@@ -12,6 +12,40 @@ import com.amazonaws.regions.Regions;
 public class S3Configuration {
     public static final String DEFAULT_LOG_BUCKETPATH = "logs/";
 
+    /**
+     * SSE options when using S3
+     * See https://docs.aws.amazon.com/AmazonS3/latest/dev/serv-side-encryption.html
+     */
+    public enum SSEType {
+        SSE_S3,     // Server-Side Encryption with Amazon S3-Managed Key
+        SSE_KMS,    // Server-Side Encryption with AWS KMS-Managed Keys
+        SSE_C,      // Server-Side Encryption with Customer-Provided Keys
+    }
+
+    /**
+     * Configuration for working with SSE in AWS S3
+     */
+    public final static class S3SSEConfiguration {
+        private final SSEType keyType;
+        private final String keyId;
+
+        public S3SSEConfiguration(SSEType keyType, String keyId) {
+            if (keyType != SSEType.SSE_S3) {
+                throw new UnsupportedOperationException("Only SSE_S3 is supported at this time.");
+            }
+            this.keyType = keyType;
+            this.keyId = keyId;
+        }
+
+        public SSEType getKeyType() {
+            return keyType;
+        }
+
+        public String getKeyId() {
+            return keyId;
+        }
+    }
+
     private String accessKey = null;
     private String secretKey = null;
     private Region region = null;
@@ -20,6 +54,8 @@ public class S3Configuration {
 
     private String serviceEndpoint = null;
     private String signingRegion = null;
+
+    private S3SSEConfiguration sseConfiguration = null;
 
     public String getAccessKey() {
         return accessKey;
@@ -36,6 +72,14 @@ public class S3Configuration {
 
     public Region getRegion() {
         return region;
+    }
+
+    public S3SSEConfiguration getSseConfiguration() {
+        return sseConfiguration;
+    }
+
+    public void setSseConfiguration(S3SSEConfiguration sseConfiguration) {
+        this.sseConfiguration = sseConfiguration;
     }
 
     /**

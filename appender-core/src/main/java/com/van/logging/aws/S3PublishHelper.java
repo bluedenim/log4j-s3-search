@@ -36,6 +36,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
     private final String bucket;
     private final String path;
     private boolean compressEnabled = false;
+    private final S3Configuration.S3SSEConfiguration sseConfig;
 
     private volatile boolean bucketExists = false;
 
@@ -43,7 +44,8 @@ public class S3PublishHelper implements IPublishHelper<Event> {
     private Writer outputWriter;
 
 
-    public S3PublishHelper(AmazonS3Client client, String bucket, String path, boolean compressEnabled) {
+    public S3PublishHelper(AmazonS3Client client, String bucket, String path, boolean compressEnabled,
+                           S3Configuration.S3SSEConfiguration sseConfig) {
         this.client = client;
         this.bucket = bucket.toLowerCase();
         if (!path.endsWith("/")) {
@@ -52,6 +54,7 @@ public class S3PublishHelper implements IPublishHelper<Event> {
             this.path = path;
         }
         this.compressEnabled = compressEnabled;
+        this.sseConfig = sseConfig;
     }
 
     public void start(PublishContext context) {
@@ -99,6 +102,11 @@ public class S3PublishHelper implements IPublishHelper<Event> {
                 ObjectMetadata metadata = new ObjectMetadata();
                 metadata.setContentLength(tempFile.length());
                 metadata.setContentType(ContentType.DEFAULT_BINARY.getMimeType());
+                // Currently, only SSE_S3 is supported
+                if ((sseConfig != null) && (sseConfig.getKeyType() == S3Configuration.SSEType.SSE_S3)) {
+                    // https://docs.aws.amazon.com/AmazonS3/latest/dev/SSEUsingJavaSDK.html
+                    metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+                }
 
                 PutObjectRequest por = new PutObjectRequest(bucket, key, tempFile);
                 por.setMetadata(metadata);
