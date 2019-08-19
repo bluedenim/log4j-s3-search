@@ -65,16 +65,19 @@ that for the Log4j 1.x example. The method used is documented [here.](https://st
 ### Maven Dependencies
  
 For example, when coding with Log4j 1.x:
+
+Please **substitute in the latest version** in your case (so I don't have to keep updating this README.md).
+
 ```
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-core</artifactId>
-    <version>2.3.0</version>
+    <version>2.3.1</version>
 </dependency>
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j</artifactId>
-    <version>2.3.0</version>
+    <version>2.3.1</version>
 </dependency>
 ```
 
@@ -83,12 +86,12 @@ Similarly, when coding with Log4j 2.x:
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-core</artifactId>
-    <version>2.3.0</version>
+    <version>2.3.1</version>
 </dependency>
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j2</artifactId>
-    <version>2.3.0</version>
+    <version>2.3.1</version>
 </dependency>
 ```
 
