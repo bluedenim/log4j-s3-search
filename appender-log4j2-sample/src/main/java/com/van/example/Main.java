@@ -1,6 +1,5 @@
 package com.van.example;
 
-import com.amazonaws.services.dynamodbv2.xspec.M;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
