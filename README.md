@@ -69,12 +69,12 @@ For example, when coding with Log4j 1.x:
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-core</artifactId>
-    <version>2.1.1</version>
+    <version>2.3.0</version>
 </dependency>
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j</artifactId>
-    <version>2.1.1</version>
+    <version>2.3.0</version>
 </dependency>
 ```
 
@@ -83,12 +83,12 @@ Similarly, when coding with Log4j 2.x:
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-core</artifactId>
-    <version>2.1.1</version>
+    <version>2.3.0</version>
 </dependency>
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j2</artifactId>
-    <version>2.1.1</version>
+    <version>2.3.0</version>
 </dependency>
 ```
 
@@ -146,7 +146,7 @@ Use either:
   - **s3ServiceEndpoint** and **s3SigningRegion**
 
 but not all three simultaneously. You will get an error from AWS if you use all three.
-Log4A
+
 AWS credentials are required to interact with S3.  The recommended way is using either 1) instance profiles (when working with EC2 instances) or 2) creating `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials`.
 
 These properties can also be overridden in Log4j configuration for `S3LogAppender`:
@@ -172,6 +172,10 @@ e.g.
 
 logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
+
+Content configurations
+* **s3Compression** -- if set to "true," then contents will be GZIP'ed before publishing into S3
+* **s3SseKeyType** -- if set to "SSE_S3," then contents published will be flagged to use SSE-S3 encryption (see https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
 
 
 ### Solr
