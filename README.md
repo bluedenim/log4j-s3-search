@@ -150,10 +150,17 @@ Use either:
 
 but not all three simultaneously. You will get an error from AWS if you use all three.
 
-AWS credentials are required to interact with S3.  The recommended way is using either 1) instance profiles (when working with EC2 instances) or 2) creating `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials`.
+AWS credentials are required to interact with S3.  **NOTE** that the recommended way of configuring
+the credentials is:
+  1) using roles assigned to instance profiles (when working with EC2 instances) or 
+  2) creating a credentials file on the computer running the program as 
+  `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials` (see https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/credentials.html#credentials-file-format)
 
-These properties can also be overridden in Log4j configuration for `S3LogAppender`:
+If the above methods are not possible for your situation, these properties can also be overridden in 
+Log4j configuration for `S3LogAppender`:
 * **s3AwsKey** and **s3AwsSecret** -- access and secret keys.  
+* **s3AwsSessionToken** -- session token for short-lived credentials.
+
 When these properties are present in the configuration, they *take precedence over* the default sources in the credential chain as described earlier.
 
 A sample snippet from `log4j.properties` (with the optional s3AwsKey and s3AwsSecret properties set):

@@ -53,6 +53,9 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     private String s3AwsSecret;
 
     @PluginBuilderAttribute
+    private String s3AwsSessionToken = null;
+
+    @PluginBuilderAttribute
     private String s3ServiceEndpoint;
 
     @PluginBuilderAttribute
@@ -121,12 +124,13 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setRegion(s3Region);
             config.setAccessKey(s3AwsKey);
             config.setSecretKey(s3AwsSecret);
+            config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
             s3 = Optional.of(config);
         }
         return s3.map(config -> buildClient(
-            config.getAccessKey(), config.getSecretKey(),
+            config.getAccessKey(), config.getSecretKey(), config.getSessionToken(),
             config.getRegion(),
             config.getServiceEndpoint(), config.getSigningRegion()
         ));

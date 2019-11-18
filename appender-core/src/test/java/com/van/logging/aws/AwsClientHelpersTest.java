@@ -1,5 +1,9 @@
 package com.van.logging.aws;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -49,7 +53,7 @@ public class AwsClientHelpersTest {
 
         try {
             AmazonS3 client = AwsClientHelpers.buildClient(
-                accessKey, secretKey, region,
+                accessKey, secretKey, null, region,
                 null, null
             );
             assertEquals(mockedClient, client);
@@ -81,7 +85,7 @@ public class AwsClientHelpersTest {
 
         try {
             AmazonS3 client = AwsClientHelpers.buildClient(
-                accessKey, secretKey, null,
+                accessKey, secretKey, null, null,
                 serviceEndpoint, signingRegion
             );
             assertEquals(mockedClient, client);
@@ -94,5 +98,25 @@ public class AwsClientHelpersTest {
         } catch (Exception ex) {
             fail("Unexpected exception: " + ex.getMessage());
         }
+    }
+
+    @Test
+    public void testGetCredentialsProvider() {
+        AWSCredentialsProvider accessProvider = AwsClientHelpers.getCredentialsProvider(
+            "accessKey", "secretKey", null
+        );
+        AWSCredentials credentials = accessProvider.getCredentials();
+        assertEquals(BasicAWSCredentials.class, credentials.getClass());
+    }
+
+    @Test
+    public void testGetCredentialsProviderWithSessionToken() {
+        AWSCredentialsProvider accessProvider = AwsClientHelpers.getCredentialsProvider(
+            "accessKey", "secretKey", "sessionToken"
+        );
+        AWSCredentials credentials = accessProvider.getCredentials();
+        assertEquals(BasicSessionCredentials.class, credentials.getClass());
+        BasicSessionCredentials bsc = (BasicSessionCredentials)credentials;
+        assertEquals("sessionToken", bsc.getSessionToken());
     }
 }

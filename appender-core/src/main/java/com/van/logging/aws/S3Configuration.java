@@ -48,6 +48,7 @@ public class S3Configuration {
 
     private String accessKey = null;
     private String secretKey = null;
+    private String sessionToken = null;
     private Region region = null;
     private String bucket = null;
     private String path = DEFAULT_LOG_BUCKETPATH;
@@ -69,6 +70,8 @@ public class S3Configuration {
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
     }
+    public String getSessionToken() { return sessionToken; }
+    public void setSessionToken(String sessionToken) { this.sessionToken = sessionToken; }
 
     public Region getRegion() {
         return region;

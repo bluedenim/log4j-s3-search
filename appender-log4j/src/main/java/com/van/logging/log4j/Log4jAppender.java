@@ -155,6 +155,8 @@ public class Log4jAppender extends AppenderSkeleton
         getS3().setSecretKey(secretKey);
     }
 
+    public void setS3AwsSessionToken(String accessToken) { getS3().setSessionToken(accessToken); }
+
     public void setS3ServiceEndpoint(String serviceEndpoint) {
         getS3().setServiceEndpoint(serviceEndpoint);
     }
@@ -244,7 +246,7 @@ public class Log4jAppender extends AppenderSkeleton
             hostName = addr.getHostName();
             if (null != s3) {
                 s3Client = (AmazonS3Client)buildClient(
-                    s3.getAccessKey(), s3.getSecretKey(),
+                    s3.getAccessKey(), s3.getSecretKey(), s3.getSessionToken(),
                     s3.getRegion(),
                     s3.getServiceEndpoint(), s3.getSigningRegion()
                 );
