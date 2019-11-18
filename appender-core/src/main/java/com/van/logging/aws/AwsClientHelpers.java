@@ -8,16 +8,23 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 public class AwsClientHelpers {
 
-    static AWSCredentialsProvider getCredentialsProvider(String accessKey, String secretKey) {
+    static AWSCredentialsProvider getCredentialsProvider(
+        final String accessKey, final String secretKey, final String sessionToken
+    ) {
         AWSCredentialsProvider credProvider;
         if ((null != accessKey) && (null != secretKey)) {
+            AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+            if (sessionToken != null) {
+                credentials = new BasicSessionCredentials(accessKey, secretKey, sessionToken);
+            }
+            AWSCredentials finalCredentials = credentials;
             credProvider = new AWSCredentialsProviderChain(
                 // If the user took the pains to construct us with the access
                 // credentials, give them priority over the defaults from the
                 // the more general environment
                 new AWSCredentialsProvider() {
                     public AWSCredentials getCredentials() {
-                        return new BasicAWSCredentials(accessKey, secretKey);
+                        return finalCredentials;
                     }
 
                     public void refresh() {
@@ -46,6 +53,7 @@ public class AwsClientHelpers {
      *
      * @param accessKey optional access key for S3 access.
      * @param secretKey optional secret key for S3 access.
+     * @param sessionToken optional session token for S3 access.
      * @param region optional region to use.
      * @param serviceEndpoint optional service endpoint to use when initializing the S3 Client.
      * @param signingRegion optional signing region to use when initializing the S3 Client.
@@ -53,12 +61,12 @@ public class AwsClientHelpers {
      * @return the client class to use for S3 access.
      */
     public static AmazonS3 buildClient(
-        String accessKey, String secretKey,
+        String accessKey, String secretKey, String sessionToken,
         Region region,
         String serviceEndpoint, String signingRegion
     ) {
         AWSCredentialsProvider credentialsProvider =
-            getCredentialsProvider(accessKey, secretKey);
+            getCredentialsProvider(accessKey, secretKey, sessionToken);
         AwsClientBuilder builder = getS3ClientBuilder();
         builder = builder.withCredentials(credentialsProvider);
         if (region != null) {
