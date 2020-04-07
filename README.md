@@ -176,7 +176,7 @@ log4j.appender.S3Appender.s3AwsSecret=ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF
 
 The final S3 key used in the bucket follows the format:
 ```
-{s3Path}/yyyyMMddHH24mmss_{UUID w/ "-" stripped}
+{s3Path}/yyyyMMddHH24mmss_{hostname}_{UUID w/ "-" stripped}
 
 e.g.
 
