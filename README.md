@@ -1,7 +1,7 @@
 # log4j-s3-search 
 
 A [Log4j appender](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Appender.html) implementation that will collect log events into a staging buffer up to a configured size to then publish to external store such as:
-*  [AWS S3](http://aws.amazon.com/s3/) for remote storage/archive.
+*  [AWS S3](http://aws.amazon.com/s3/) and [Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/) for remote storage/archive.
 *  [Apache Solr](http://lucene.apache.org/solr/) for search.
 *  [Elasticsearch](https://www.elastic.co/guide/index.html) for search.
 
@@ -33,7 +33,7 @@ To run the sample program **appender-log4j-sample**:
 ```
 cd appender-log4j-sample
 ```
-Modify `src\main\resources\log4j.properties` to use _your S3 bucket, path, and region_.
+Modify `src\main\resources\log4j.properties` to use _your storage configuration_.
 ```
 mvn clean install
 mvn assembly:assembly
@@ -46,7 +46,7 @@ To run the sample program **appender-log4j2-sample**:
 ```
 cd appender-log4j2-sample
 ```
-Modify `src\main\resources\log4j2.xml` to use _your S3 bucket, path, and region_.
+Modify `src\main\resources\log4j2.xml` to use _your storage configuration_.
 ```
 mvn clean install
 java -cp target\log4j-s3-search-log4j2-sample.jar com.van.example.Main
@@ -54,6 +54,11 @@ java -cp target\log4j-s3-search-log4j2-sample.jar com.van.example.Main
 
 _There is currently some complication w/ Log4j 2 such that the packaging is done differently than 
 that for the Log4j 1.x example. The method used is documented [here.](https://stackoverflow.com/questions/34945438/log4j2-configuration-not-found-when-running-standalone-application-builded-by-sh/34946780)_
+
+### Log4j vs Log4j 2
+There is currently a security vulnerability with Log4j (https://github.com/advisories/GHSA-2qrg-x229-3v8q). 
+
+In addition, Log4j hasn't been worked on since mid-2012.
 
 ## Usage
 * Find out which version of Log4j your client program is using.
@@ -112,24 +117,24 @@ _All the examples here are using the log4j.properties format for Log4j 1.x. See 
 
 A sample snippet from `log4j.properties` to publish whenever 2500 events are collected:
 ```
-log4j.appender.S3Appender=com.van.logging.log4j.Log4jAppender
-log4j.appender.S3Appender.layout=org.apache.log4j.PatternLayout
-log4j.appender.S3Appender.layout.conversionPattern=%d %p [%t] %c %m
-log4j.appender.S3Appender.Threshold=WARN
+log4j.appender.L4jAppender=com.van.logging.log4j.Log4jAppender
+log4j.appender.L4jAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.L4jAppender.layout.conversionPattern=%d %p [%t] %c %m
+log4j.appender.L4jAppender.Threshold=WARN
 
-log4j.appender.S3Appender.tags=TEST,ONE,TWO
-log4j.appender.S3Appender.stagingBufferSize=2500
+log4j.appender.L4jAppender.tags=TEST,ONE,TWO
+log4j.appender.L4jAppender.stagingBufferSize=2500
 ```
 
 or, if a time-based publishing policy is desired (e.g. publish every 15 minutes):
 ```
-log4j.appender.S3Appender=com.van.logging.log4j.Log4jAppender
-log4j.appender.S3Appender.layout=org.apache.log4j.PatternLayout
-log4j.appender.S3Appender.layout.conversionPattern=%d %p [%t] %c %m
-log4j.appender.S3Appender.Threshold=WARN
+log4j.appender.L4jAppender=com.van.logging.log4j.Log4jAppender
+log4j.appender.L4jAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.L4jAppender.layout.conversionPattern=%d %p [%t] %c %m
+log4j.appender.L4jAppender.Threshold=WARN
 
-log4j.appender.S3Appender.tags=TEST,ONE,TWO
-log4j.appender.S3Appender.stagingBufferAge=15
+log4j.appender.L4jAppender.tags=TEST,ONE,TWO
+log4j.appender.L4jAppender.stagingBufferAge=15
 ```
 
 ### S3
@@ -163,13 +168,13 @@ When these properties are present in the configuration, they *take precedence ov
 
 A sample snippet from `log4j.properties` (with the optional s3AwsKey and s3AwsSecret properties set):
 ```
-log4j.appender.S3Appender.s3Region=us-west-2
-log4j.appender.S3Appender.s3Bucket=acmecorp
-log4j.appender.S3Appender.s3Path=logs/myApplication/
+log4j.appender.L4jAppender.s3Region=us-west-2
+log4j.appender.L4jAppender.s3Bucket=acmecorp
+log4j.appender.L4jAppender.s3Path=logs/myApplication/
 
 # Optional access and secret keys
-log4j.appender.S3Appender.s3AwsKey=CMSADEFHASFHEUCBEOERUE
-log4j.appender.S3Appender.s3AwsSecret=ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF
+log4j.appender.L4jAppender.s3AwsKey=CMSADEFHASFHEUCBEOERUE
+log4j.appender.L4jAppender.s3AwsSecret=ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF
 ```
 
 The final S3 key used in the bucket follows the format:
@@ -184,6 +189,30 @@ logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 Content configurations
 * **s3Compression** -- if set to "true," then contents will be GZIP'ed before publishing into S3
 * **s3SseKeyType** -- if set to "SSE_S3," then contents published will be flagged to use SSE-S3 encryption (see https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
+
+### Azure Blob
+These properties (**please use your own values**) control how the logs will be stored in Azure Blob Storage:
+* **azureBlobContainer** -- the storage container name.
+* **azureBlobNamePrefix** -- the prefix for the blob name.
+* **azureBlobCompressionEnabled** -- if set to "true," then contents will be GZIP'ed before publishing.
+* **azureStorageConnectionString** -- optional value for the connection string for connecting to Azure. See note below.
+
+A sample snippet from `log4j.properties` (with the optional azureStorageConnectionString property set):
+```
+log4j.appender.L4jAppender.azureBlobContainer=my-container
+log4j.appender.L4jAppender.azureBlobNamePrefix=logs/myApplication/
+
+# Optional
+log4j.appender.L4jAppender.azureBlobCompressionEnabled=false
+log4j.appender.L4jAppender.azureStorageConnectionString=DefaultEndpointsProtocol=https;AccountName=...;EndpointSuffix=core.windows.net
+```
+
+Notes:
+* See https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata for rules on names.
+* From various examples online, the preferred way to establish the Azure connection string is to set the environment
+  variable `AZURE_STORAGE_CONNECTION_STRING` on the hosts running your code. 
+  However, you can also set the `azureStorageConnectionString` property for local testing.
+
 
 
 ### Solr
@@ -203,10 +232,10 @@ There are four properties for Elasticsearch, all but one are optional:
 * **elasticsearchHosts** -- comma-delimited list of `host:port` values. There is no default; this property is *required*. 
 
 ```
-log4j.appender.S3Appender.elasticsearchCluster=elasticsearch
-log4j.appender.S3Appender.elasticsearchIndex=logindex
-log4j.appender.S3Appender.elasticsearchType=log
-log4j.appender.S3Appender.elasticsearchHosts=localhost:9300
+log4j.appender.L4jAppender.elasticsearchCluster=elasticsearch
+log4j.appender.L4jAppender.elasticsearchIndex=logindex
+log4j.appender.L4jAppender.elasticsearchType=log
+log4j.appender.L4jAppender.elasticsearchHosts=localhost:9300
 ```
 
 ## Solr Integration
