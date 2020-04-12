@@ -207,6 +207,15 @@ log4j.appender.L4jAppender.azureBlobCompressionEnabled=false
 log4j.appender.L4jAppender.azureStorageConnectionString=DefaultEndpointsProtocol=https;AccountName=...;EndpointSuffix=core.windows.net
 ```
 
+Just as the case of S3, the final blob name used in the container follows the format:
+```
+{azureBlobNamePrefix}/yyyyMMddHH24mmss_{hostname}_{UUID w/ "-" stripped}
+
+e.g.
+
+logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
+```
+
 Notes:
 * See https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata for rules on names.
 * From various examples online, the preferred way to establish the Azure connection string is to set the environment
