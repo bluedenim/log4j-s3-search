@@ -4,19 +4,16 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
-import com.van.logging.Event;
-import com.van.logging.IPublishHelper;
+import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.PublishContext;
 import org.apache.http.entity.ContentType;
 
 import java.io.*;
-import java.util.Objects;
-import java.util.zip.GZIPOutputStream;
+
+import static com.van.logging.aws.AwsClientHelpers.buildClient;
 
 /**
  * Implementation to publish log events to S3.
- * <br>
- * These Log4j logger parameters configure the S3 publisher:
  * <br>
  * <em>NOTES</em>:
  * <ul>
@@ -30,43 +27,37 @@ import java.util.zip.GZIPOutputStream;
  * @author vly
  *
  */
-public class S3PublishHelper implements IPublishHelper<Event> {
+public class S3PublishHelper extends AbstractFilePublishHelper {
 
     private final AmazonS3Client client;
     private final String bucket;
     private final String path;
-    private boolean compressEnabled = false;
     private final S3Configuration.S3SSEConfiguration sseConfig;
 
     private volatile boolean bucketExists = false;
 
-    private File tempFile;
-    private Writer outputWriter;
+    public S3PublishHelper(S3Configuration s3) {
+        super(s3.isCompressionEnabled());
+        this.client = (AmazonS3Client)buildClient(
+            s3.getAccessKey(), s3.getSecretKey(), s3.getSessionToken(),
+            s3.getRegion(),
+            s3.getServiceEndpoint(), s3.getSigningRegion()
+        );
 
-
-    public S3PublishHelper(AmazonS3Client client, String bucket, String path, boolean compressEnabled,
-                           S3Configuration.S3SSEConfiguration sseConfig) {
-        this.client = client;
-        this.bucket = bucket.toLowerCase();
+        this.bucket = s3.getBucket().toLowerCase();
+        String path = s3.getPath();
         if (!path.endsWith("/")) {
             this.path = path + "/";
         } else {
             this.path = path;
         }
-        this.compressEnabled = compressEnabled;
-        this.sseConfig = sseConfig;
+        this.sseConfig = s3.getSseConfiguration();
     }
 
+    @Override
     public void start(PublishContext context) {
+        super.start(context);
         try {
-            tempFile = File.createTempFile("s3Publish", null);
-            OutputStream os = createCompressedStreamAsNecessary(
-                new BufferedOutputStream(new FileOutputStream(tempFile)),
-                compressEnabled);
-            outputWriter = new OutputStreamWriter(os);
-            //  System.out.println(
-            //      String.format("Collecting content into %s before sending to S3.", tempFile));
-
             if (!bucketExists) {
                 bucketExists = client.doesBucketExist(bucket);
                 if (!bucketExists) {
@@ -79,65 +70,30 @@ public class S3PublishHelper implements IPublishHelper<Event> {
         }
     }
 
-    public void publish(PublishContext context, int sequence, Event event) {
-        try {
-            outputWriter.write(event.getMessage());
-        } catch (Exception ex) {
-            throw new RuntimeException(
-                String.format("Cannot collect event %s: %s", event, ex.getMessage()), ex);
-        }
-    }
-
-
-    public void end(PublishContext context) {
-        String key = String.format("%s%s", path, context.getCacheName());
+    @Override
+    protected void publishFile(File file, PublishContext context) {
+        String key = String.format("%s%s", this.path, context.getCacheName());
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
 			bucket, key)); */
 
         try {
-            if (null != outputWriter) {
-                outputWriter.close();
-                outputWriter = null;
-                // System.out.println(String.format("Publishing content of %s to S3.", tempFile));
-                ObjectMetadata metadata = new ObjectMetadata();
-                metadata.setContentLength(tempFile.length());
-                metadata.setContentType(ContentType.DEFAULT_BINARY.getMimeType());
-                // Currently, only SSE_S3 is supported
-                if ((sseConfig != null) && (sseConfig.getKeyType() == S3Configuration.SSEType.SSE_S3)) {
-                    // https://docs.aws.amazon.com/AmazonS3/latest/dev/SSEUsingJavaSDK.html
-                    metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
-                }
-
-                PutObjectRequest por = new PutObjectRequest(bucket, key, tempFile);
-                por.setMetadata(metadata);
-
-                PutObjectResult result = client.putObject(por);
-                /* System.out.println(String.format("Content MD5: %s",
-                    result.getContentMd5())); */
+            // System.out.println(String.format("Publishing content of %s to S3.", tempFile));
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.length());
+            metadata.setContentType(ContentType.DEFAULT_BINARY.getMimeType());
+            // Currently, only SSE_S3 is supported
+            if ((sseConfig != null) && (sseConfig.getKeyType() == S3Configuration.SSEType.SSE_S3)) {
+                // https://docs.aws.amazon.com/AmazonS3/latest/dev/SSEUsingJavaSDK.html
+                metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
             }
-        } catch (UnsupportedEncodingException e) {
+
+            PutObjectRequest por = new PutObjectRequest(bucket, key, file);
+            por.setMetadata(metadata);
+
+            PutObjectResult result = client.putObject(por);
+            // System.out.println(String.format("Content MD5: %s", result.getContentMd5()));
         } catch (Exception ex) {
-            throw new RuntimeException(
-                String.format("Cannot publish to S3: %s", ex.getMessage()), ex);
-        } finally {
-            if (null != tempFile) {
-                try {
-                    tempFile.delete();
-                    tempFile = null;
-                } catch (Exception ex) {
-                }
-            }
-        }
-    }
-
-    static OutputStream createCompressedStreamAsNecessary(
-        OutputStream outputStream, boolean compressEnabled) throws IOException {
-        Objects.requireNonNull(outputStream);
-        if (compressEnabled) {
-            // System.out.println("Content will be compressed.");
-            return new GZIPOutputStream(outputStream);
-        } else {
-            return outputStream;
+            throw new RuntimeException(String.format("Cannot publish to S3: %s", ex.getMessage()), ex);
         }
     }
 }

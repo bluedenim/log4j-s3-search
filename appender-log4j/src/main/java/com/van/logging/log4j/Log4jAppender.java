@@ -1,13 +1,15 @@
 package com.van.logging.log4j;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.van.logging.*;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
+import com.van.logging.azure.BlobConfiguration;
+import com.van.logging.azure.BlobPublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
 import com.van.logging.elasticsearch.ElasticsearchPublishHelper;
 import com.van.logging.solr.SolrConfiguration;
 import com.van.logging.solr.SolrPublishHelper;
+import com.van.logging.utils.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.Filter;
@@ -88,10 +90,9 @@ public class Log4jAppender extends AppenderSkeleton
     private volatile String hostName;
 
     private S3Configuration s3;
+    private BlobConfiguration blobConfiguration;
     private SolrConfiguration solr;
     private ElasticsearchConfiguration elasticsearchConfiguration;
-    private AmazonS3Client s3Client;
-    private boolean s3Compression = false;
 
     private boolean verbose = false;
 
@@ -166,7 +167,7 @@ public class Log4jAppender extends AppenderSkeleton
     }
 
     public void setS3Compression(String enable) {
-        s3Compression = Boolean.parseBoolean(enable);
+        getS3().setCompressionEnabled(Boolean.parseBoolean(enable));
     }
 
     public void setS3SseKeyType(String s3SseKeyType) {
@@ -175,6 +176,31 @@ public class Log4jAppender extends AppenderSkeleton
             null
         );
         getS3().setSseConfiguration(sseConfig);
+    }
+
+    // Azure blob properties
+    ///////////////////////////////////////////////////////////////////////////
+    private BlobConfiguration getBlobConfiguration() {
+        if (null == blobConfiguration) {
+            blobConfiguration = new BlobConfiguration();
+        }
+        return blobConfiguration;
+    }
+
+    public void setAzureBlobContainer(String containerName) {
+        getBlobConfiguration().setContainerName(containerName);
+    }
+
+    public void setAzureBlobNamePrefix(String namePrefix) {
+        getBlobConfiguration().setBlobNamePrefix(namePrefix);
+    }
+
+    public void setAzureStorageConnectionString(String connectionString) {
+        getBlobConfiguration().setStorageConnectionString(connectionString);
+    }
+
+    public void setAzureBlobCompressionEnabled(String enable) {
+        getBlobConfiguration().setCompressionEnabled(Boolean.parseBoolean(enable));
     }
 
     // Solr properties
@@ -244,13 +270,6 @@ public class Log4jAppender extends AppenderSkeleton
             initFilters();
             java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
             hostName = addr.getHostName();
-            if (null != s3) {
-                s3Client = (AmazonS3Client)buildClient(
-                    s3.getAccessKey(), s3.getSecretKey(), s3.getSessionToken(),
-                    s3.getRegion(),
-                    s3.getServiceEndpoint(), s3.getSigningRegion()
-                );
-            }
             initStagingLog();
         } catch (Exception ex) {
             errorHandler.error("Cannot initialize resources", ex, 100);
@@ -292,15 +311,20 @@ public class Log4jAppender extends AppenderSkeleton
 
     IBufferPublisher<Event> createCachePublisher() {
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, tags);
-        if (null != s3Client) {
+        if (null != s3 && StringUtils.isTruthy(s3.getBucket()) && StringUtils.isTruthy(s3.getPath())) {
             if (verbose) {
                 System.out.println("Registering S3 publish helper");
             }
-            publisher.addHelper(new S3PublishHelper(s3Client,
-                s3.getBucket(), s3.getPath(),
-                s3Compression,
-                s3.getSseConfiguration()
-            ));
+            publisher.addHelper(new S3PublishHelper(s3));
+        }
+        if (null != blobConfiguration
+            && StringUtils.isTruthy(blobConfiguration.getContainerName())
+            && StringUtils.isTruthy(blobConfiguration.getBlobNamePrefix())
+        ) {
+            if (verbose) {
+                System.out.println("Registering Azure blob publish helper");
+            }
+            publisher.addHelper(new BlobPublishHelper(blobConfiguration));
         }
         if (null != solr) {
             URL solrUrl = solr.getUrl();

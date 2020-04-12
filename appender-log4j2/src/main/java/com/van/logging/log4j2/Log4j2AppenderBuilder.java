@@ -1,14 +1,15 @@
 package com.van.logging.log4j2;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.van.logging.*;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
+import com.van.logging.azure.BlobConfiguration;
+import com.van.logging.azure.BlobPublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
 import com.van.logging.elasticsearch.ElasticsearchPublishHelper;
 import com.van.logging.solr.SolrConfiguration;
 import com.van.logging.solr.SolrPublishHelper;
+import com.van.logging.utils.StringUtils;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
@@ -17,8 +18,6 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.van.logging.aws.AwsClientHelpers.buildClient;
 
 public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder
     implements org.apache.logging.log4j.core.util.Builder<Log4j2Appender> {
@@ -66,6 +65,19 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
 
     @PluginBuilderAttribute
     private String s3SseKeyType;
+
+    // Azure blob properties
+    @PluginBuilderAttribute
+    private String azureStorageConnectionString;
+
+    @PluginBuilderAttribute
+    private String azureBlobContainer;
+
+    @PluginBuilderAttribute
+    private String azureBlobNamePrefix;
+
+    @PluginBuilderAttribute
+    private String azureBlobCompressionEnabled;
 
     // Solr properties
     @PluginBuilderAttribute
@@ -115,9 +127,9 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         return appender;
     }
 
-    Optional<AmazonS3> initS3ClientIfEnabled() {
-        Optional<S3Configuration> s3 = Optional.empty();
-        if ((null != s3Bucket) && (null != s3Path)) {
+    Optional<S3Configuration> initS3ConfigIfEnabled() {
+        Optional<S3Configuration> s3Config = Optional.empty();
+        if (StringUtils.isTruthy(s3Bucket) && StringUtils.isTruthy(s3Path)) {
             S3Configuration config = new S3Configuration();
             config.setBucket(s3Bucket);
             config.setPath(s3Path);
@@ -127,13 +139,33 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
-            s3 = Optional.of(config);
+
+            S3Configuration.S3SSEConfiguration sseConfig = null;
+            if (s3SseKeyType != null) {
+                sseConfig = new S3Configuration.S3SSEConfiguration(
+                        S3Configuration.SSEType.valueOf(s3SseKeyType),
+                        null
+                );
+            }
+            config.setSseConfiguration(sseConfig);
+            s3Config = Optional.of(config);
         }
-        return s3.map(config -> buildClient(
-            config.getAccessKey(), config.getSecretKey(), config.getSessionToken(),
-            config.getRegion(),
-            config.getServiceEndpoint(), config.getSigningRegion()
-        ));
+        return s3Config;
+    }
+
+    Optional<BlobConfiguration> getBlobConfigurationIfEnabled() {
+        Optional<BlobConfiguration> blobConfiguration = Optional.empty();
+        if (StringUtils.isTruthy(this.azureBlobContainer)) {
+            BlobConfiguration config = new BlobConfiguration();
+            config.setStorageConnectionString(this.azureStorageConnectionString);
+            config.setContainerName(this.azureBlobContainer);
+            if (null != this.azureBlobNamePrefix) {
+                config.setBlobNamePrefix(this.azureBlobNamePrefix);
+            }
+            config.setCompressionEnabled(Boolean.parseBoolean(this.azureBlobCompressionEnabled));
+            blobConfiguration = Optional.of(config);
+        }
+        return blobConfiguration;
     }
 
     static Optional<SolrConfiguration> getSolrConfigurationIfEnabled(String solrUrl) {
@@ -163,23 +195,19 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         String hostName = addr.getHostName();
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, parseTags(tags));
 
-        initS3ClientIfEnabled().ifPresent(client -> {
+        initS3ConfigIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format(
-                    "Registering S3 publish helper -> %s:%s", s3Bucket, s3Path));
+                    "Registering S3 publish helper -> %s", config));
             }
-            S3Configuration.S3SSEConfiguration sseConfig = null;
-            if (s3SseKeyType != null) {
-                sseConfig = new S3Configuration.S3SSEConfiguration(
-                    S3Configuration.SSEType.valueOf(s3SseKeyType),
-                    null
-                );
+            publisher.addHelper(new S3PublishHelper(config));
+        });
+
+        getBlobConfigurationIfEnabled().ifPresent(config -> {
+            if (verbose) {
+                System.out.println(String.format("Registering Azure blob publish helper -> %s", config));
             }
-            publisher.addHelper(new S3PublishHelper((AmazonS3Client)client,
-                s3Bucket, s3Path,
-                Boolean.parseBoolean(s3Compression),
-                sseConfig
-            ));
+            publisher.addHelper(new BlobPublishHelper(config));
         });
 
         getSolrConfigurationIfEnabled(solrUrl).ifPresent(config -> {
