@@ -56,6 +56,7 @@ public class S3Configuration {
     private String serviceEndpoint = null;
     private String signingRegion = null;
 
+    private boolean compressionEnabled = false;
     private S3SSEConfiguration sseConfiguration = null;
 
     public String getAccessKey() {
@@ -123,6 +124,14 @@ public class S3Configuration {
         this.signingRegion = signingRegion;
     }
 
+    public boolean isCompressionEnabled() {
+        return compressionEnabled;
+    }
+
+    public void setCompressionEnabled(boolean compressionEnabled) {
+        this.compressionEnabled = compressionEnabled;
+    }
+
     /**
      * Best-effort to map a region name to an actual Region instance. The input
      * string can be either the public region name (e.g. "us-west-1") or the
@@ -149,5 +158,11 @@ public class S3Configuration {
             region = Region.getRegion(regions);
         }
         return region;
+    }
+
+    public String toString() {
+        return String.format("S3 configuration (%s:%s in region %s; compressed: %s)",
+            this.bucket, this.path, this.region, this.compressionEnabled
+        );
     }
 }
