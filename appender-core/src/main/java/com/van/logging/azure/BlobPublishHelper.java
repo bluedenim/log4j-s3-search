@@ -18,8 +18,8 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
 
     private final BlobConfiguration blobConfiguration;
 
-    public BlobPublishHelper(BlobConfiguration blobConfiguration) {
-        super(blobConfiguration.isCompressionEnabled());
+    public BlobPublishHelper(BlobConfiguration blobConfiguration, boolean verbose) {
+        super(blobConfiguration.isCompressionEnabled(), verbose);
         this.blobConfiguration = blobConfiguration;
     }
 
@@ -44,8 +44,10 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
             prefix = prefix + "/";
         }
         String blobName = String.format("%s%s", prefix, context.getCacheName());
-		System.out.println(String.format("Publishing %s to Azure blob (container=%s; blob=%s):",
-			file.getAbsolutePath(), blobConfiguration.getContainerName(), blobName));
+        if (this.verbose) {
+            System.out.println(String.format("Publishing %s to Azure blob (container=%s; blob=%s):",
+                file.getAbsolutePath(), blobConfiguration.getContainerName(), blobName));
+        }
 
         CloudBlockBlob blob = container.getBlockBlobReference(blobName);
         if (this.blobConfiguration.isCompressionEnabled()) {
@@ -54,6 +56,8 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
             blob.getProperties().setContentType("text/plain");
         }
         blob.uploadFromFile(file.getAbsolutePath());
-        System.out.println(String.format("Publishing to Azure blob %s done.", blobName));
+        if (this.verbose) {
+            System.out.println(String.format("Publishing to Azure blob %s done.", blobName));
+        }
     }
 }

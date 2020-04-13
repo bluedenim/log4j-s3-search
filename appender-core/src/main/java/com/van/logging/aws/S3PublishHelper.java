@@ -36,8 +36,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
     private volatile boolean bucketExists = false;
 
-    public S3PublishHelper(S3Configuration s3) {
-        super(s3.isCompressionEnabled());
+    public S3PublishHelper(S3Configuration s3, boolean verbose) {
+        super(s3.isCompressionEnabled(), verbose);
         this.client = (AmazonS3Client)buildClient(
             s3.getAccessKey(), s3.getSecretKey(), s3.getSessionToken(),
             s3.getRegion(),

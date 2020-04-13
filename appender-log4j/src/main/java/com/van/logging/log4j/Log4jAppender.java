@@ -315,7 +315,7 @@ public class Log4jAppender extends AppenderSkeleton
             if (verbose) {
                 System.out.println("Registering S3 publish helper");
             }
-            publisher.addHelper(new S3PublishHelper(s3));
+            publisher.addHelper(new S3PublishHelper(s3, verbose));
         }
         if (null != blobConfiguration
             && StringUtils.isTruthy(blobConfiguration.getContainerName())
@@ -324,7 +324,7 @@ public class Log4jAppender extends AppenderSkeleton
             if (verbose) {
                 System.out.println("Registering Azure blob publish helper");
             }
-            publisher.addHelper(new BlobPublishHelper(blobConfiguration));
+            publisher.addHelper(new BlobPublishHelper(blobConfiguration, verbose));
         }
         if (null != solr) {
             URL solrUrl = solr.getUrl();

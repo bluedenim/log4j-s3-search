@@ -7,12 +7,14 @@ import java.util.zip.GZIPOutputStream;
 public abstract class AbstractFilePublishHelper implements IPublishHelper<Event> {
 
     private final boolean compressEnabled;
+    protected final boolean verbose;
 
     private File tempFile;
     private Writer outputWriter;
 
-    public AbstractFilePublishHelper(boolean compressEnabled) {
+    public AbstractFilePublishHelper(boolean compressEnabled, boolean verbose) {
         this.compressEnabled = compressEnabled;
+        this.verbose = verbose;
     }
 
     @Override
@@ -21,12 +23,18 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
             tempFile = File.createTempFile("toBePublished", null);
             OutputStream os = createCompressedStreamAsNecessary(
                 new BufferedOutputStream(new FileOutputStream(tempFile)),
-                compressEnabled);
+                compressEnabled,
+                this.verbose
+            );
             outputWriter = new OutputStreamWriter(os);
-            //  System.out.println(
-            //      String.format("Collecting content into %s before uploading.", tempFile));
+            if (verbose) {
+                System.out.println(String.format("Collecting content into %s before uploading.", tempFile));
+            }
 
         } catch (Exception ex) {
+            if (verbose) {
+                ex.printStackTrace(System.out);
+            }
             throw new RuntimeException(String.format("Cannot start publishing: %s", ex.getMessage()), ex);
         }
     }
@@ -36,6 +44,9 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
         try {
             outputWriter.write(event.getMessage());
         } catch (Exception ex) {
+            if (verbose) {
+                ex.printStackTrace(System.out);
+            }
             throw new RuntimeException(String.format("Cannot collect event %s: %s", event, ex.getMessage()), ex);
         }
     }
@@ -49,6 +60,9 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
             }
             publishFile(tempFile, context);
         } catch (Exception ex) {
+            if (verbose) {
+                ex.printStackTrace(System.out);
+            }
             throw new RuntimeException(String.format("Cannot end publishing: %s", ex.getMessage()), ex);
         } finally {
             if (null != tempFile) {
@@ -64,10 +78,12 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
     protected abstract void publishFile(File file, PublishContext context) throws Exception;
 
     static OutputStream createCompressedStreamAsNecessary(
-            OutputStream outputStream, boolean compressEnabled) throws IOException {
+            OutputStream outputStream, boolean compressEnabled, boolean verbose) throws IOException {
         Objects.requireNonNull(outputStream);
         if (compressEnabled) {
-            // System.out.println("Content will be compressed.");
+            if (verbose) {
+                System.out.println("Content will be compressed.");
+            }
             return new GZIPOutputStream(outputStream);
         } else {
             return outputStream;
