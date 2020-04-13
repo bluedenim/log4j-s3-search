@@ -13,11 +13,11 @@ public class AbstractFilePublishHelperTest {
     @Test
     public void testCreateCompressedStreamAsNecessary() {
         try (OutputStream os = new ByteArrayOutputStream()) {
-            try (OutputStream testStream = AbstractFilePublishHelper.createCompressedStreamAsNecessary(os, false)) {
+            try (OutputStream testStream = AbstractFilePublishHelper.createCompressedStreamAsNecessary(os, false, false)) {
                 Assert.assertEquals(ByteArrayOutputStream.class, testStream.getClass());
             }
 
-            try (OutputStream testStream = AbstractFilePublishHelper.createCompressedStreamAsNecessary(os, true)) {
+            try (OutputStream testStream = AbstractFilePublishHelper.createCompressedStreamAsNecessary(os, true, false)) {
                 Assert.assertEquals(GZIPOutputStream.class, testStream.getClass());
             }
         } catch (IOException e) {

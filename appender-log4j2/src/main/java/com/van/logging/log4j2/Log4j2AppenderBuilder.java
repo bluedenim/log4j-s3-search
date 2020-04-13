@@ -200,14 +200,14 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
                 System.out.println(String.format(
                     "Registering S3 publish helper -> %s", config));
             }
-            publisher.addHelper(new S3PublishHelper(config));
+            publisher.addHelper(new S3PublishHelper(config, verbose));
         });
 
         getBlobConfigurationIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format("Registering Azure blob publish helper -> %s", config));
             }
-            publisher.addHelper(new BlobPublishHelper(config));
+            publisher.addHelper(new BlobPublishHelper(config, verbose));
         });
 
         getSolrConfigurationIfEnabled(solrUrl).ifPresent(config -> {
