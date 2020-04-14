@@ -7,6 +7,8 @@ import com.van.logging.azure.BlobConfiguration;
 import com.van.logging.azure.BlobPublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
 import com.van.logging.elasticsearch.ElasticsearchPublishHelper;
+import com.van.logging.gcp.CloudStorageConfiguration;
+import com.van.logging.gcp.CloudStoragePublishHelper;
 import com.van.logging.solr.SolrConfiguration;
 import com.van.logging.solr.SolrPublishHelper;
 import com.van.logging.utils.StringUtils;
@@ -79,6 +81,16 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     @PluginBuilderAttribute
     private String azureBlobCompressionEnabled;
 
+    // GCP Storage properties
+    @PluginBuilderAttribute
+    private String gcpStorageBucket;
+
+    @PluginBuilderAttribute
+    private String gcpStorageBlobNamePrefix;
+
+    @PluginBuilderAttribute
+    private String gcpStorageCompressionEnabled;
+
     // Solr properties
     @PluginBuilderAttribute
     private String solrUrl;
@@ -127,7 +139,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         return appender;
     }
 
-    Optional<S3Configuration> initS3ConfigIfEnabled() {
+    Optional<S3Configuration> getS3ConfigIfEnabled() {
         Optional<S3Configuration> s3Config = Optional.empty();
         if (StringUtils.isTruthy(s3Bucket) && StringUtils.isTruthy(s3Path)) {
             S3Configuration config = new S3Configuration();
@@ -168,6 +180,18 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         return blobConfiguration;
     }
 
+    Optional<CloudStorageConfiguration> getCloudStorageConfigurationIfEnabled() {
+        Optional<CloudStorageConfiguration> cloudStorageConfiguration = Optional.empty();
+        if (StringUtils.isTruthy(this.gcpStorageBucket)) {
+            CloudStorageConfiguration config = new CloudStorageConfiguration();
+            config.setBucketName(this.gcpStorageBucket);
+            config.setBlobNamePrefix(this.gcpStorageBlobNamePrefix);
+            config.setCompressionEnabled(Boolean.parseBoolean(this.gcpStorageCompressionEnabled));
+            cloudStorageConfiguration = Optional.of(config);
+        }
+        return cloudStorageConfiguration;
+    }
+
     static Optional<SolrConfiguration> getSolrConfigurationIfEnabled(String solrUrl) {
         SolrConfiguration config = null;
         if (null != solrUrl) {
@@ -195,19 +219,26 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         String hostName = addr.getHostName();
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, parseTags(tags));
 
-        initS3ConfigIfEnabled().ifPresent(config -> {
+        getS3ConfigIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format(
-                    "Registering S3 publish helper -> %s", config));
+                    "Registering AWS S3 publish helper -> %s", config));
             }
             publisher.addHelper(new S3PublishHelper(config, verbose));
         });
 
         getBlobConfigurationIfEnabled().ifPresent(config -> {
             if (verbose) {
-                System.out.println(String.format("Registering Azure blob publish helper -> %s", config));
+                System.out.println(String.format("Registering Azure Blob Storage publish helper -> %s", config));
             }
             publisher.addHelper(new BlobPublishHelper(config, verbose));
+        });
+
+        getCloudStorageConfigurationIfEnabled().ifPresent(config -> {
+            if (verbose) {
+                System.out.println(String.format("Registering Google Cloud Storage publish helper -> %s", config));
+            }
+            publisher.addHelper(new CloudStoragePublishHelper(config, verbose));
         });
 
         getSolrConfigurationIfEnabled(solrUrl).ifPresent(config -> {

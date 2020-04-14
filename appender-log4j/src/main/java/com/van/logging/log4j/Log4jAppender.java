@@ -7,6 +7,8 @@ import com.van.logging.azure.BlobConfiguration;
 import com.van.logging.azure.BlobPublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
 import com.van.logging.elasticsearch.ElasticsearchPublishHelper;
+import com.van.logging.gcp.CloudStorageConfiguration;
+import com.van.logging.gcp.CloudStoragePublishHelper;
 import com.van.logging.solr.SolrConfiguration;
 import com.van.logging.solr.SolrPublishHelper;
 import com.van.logging.utils.StringUtils;
@@ -18,8 +20,6 @@ import org.apache.log4j.spi.OptionHandler;
 
 import java.net.URL;
 import java.util.UUID;
-
-import static com.van.logging.aws.AwsClientHelpers.buildClient;
 
 /**
  * The log appender adapter that hooks into the Log4j framework to collect
@@ -89,8 +89,9 @@ public class Log4jAppender extends AppenderSkeleton
     private volatile String[] tags;
     private volatile String hostName;
 
-    private S3Configuration s3;
+    private S3Configuration s3Configuration;
     private BlobConfiguration blobConfiguration;
+    private CloudStorageConfiguration cloudStorageConfiguration;
     private SolrConfiguration solr;
     private ElasticsearchConfiguration elasticsearchConfiguration;
 
@@ -129,45 +130,45 @@ public class Log4jAppender extends AppenderSkeleton
 
     // S3 properties
     ///////////////////////////////////////////////////////////////////////////
-    private S3Configuration getS3() {
-        if (null == s3) {
-            s3 = new S3Configuration();
+    private S3Configuration getS3Configuration() {
+        if (null == s3Configuration) {
+            s3Configuration = new S3Configuration();
         }
-        return s3;
+        return s3Configuration;
     }
 
     public void setS3Bucket(String bucket) {
-        getS3().setBucket(bucket);
+        getS3Configuration().setBucket(bucket);
     }
 
     public void setS3Region(String region) {
-        getS3().setRegion(region);
+        getS3Configuration().setRegion(region);
     }
 
     public void setS3Path(String path) {
-        getS3().setPath(path);
+        getS3Configuration().setPath(path);
     }
 
     public void setS3AwsKey(String accessKey) {
-        getS3().setAccessKey(accessKey);
+        getS3Configuration().setAccessKey(accessKey);
     }
 
     public void setS3AwsSecret(String secretKey) {
-        getS3().setSecretKey(secretKey);
+        getS3Configuration().setSecretKey(secretKey);
     }
 
-    public void setS3AwsSessionToken(String accessToken) { getS3().setSessionToken(accessToken); }
+    public void setS3AwsSessionToken(String accessToken) { getS3Configuration().setSessionToken(accessToken); }
 
     public void setS3ServiceEndpoint(String serviceEndpoint) {
-        getS3().setServiceEndpoint(serviceEndpoint);
+        getS3Configuration().setServiceEndpoint(serviceEndpoint);
     }
 
     public void setS3SigningRegion(String signingRegion) {
-        getS3().setSigningRegion(signingRegion);
+        getS3Configuration().setSigningRegion(signingRegion);
     }
 
     public void setS3Compression(String enable) {
-        getS3().setCompressionEnabled(Boolean.parseBoolean(enable));
+        getS3Configuration().setCompressionEnabled(Boolean.parseBoolean(enable));
     }
 
     public void setS3SseKeyType(String s3SseKeyType) {
@@ -175,7 +176,7 @@ public class Log4jAppender extends AppenderSkeleton
             S3Configuration.SSEType.valueOf(s3SseKeyType),
             null
         );
-        getS3().setSseConfiguration(sseConfig);
+        getS3Configuration().setSseConfiguration(sseConfig);
     }
 
     // Azure blob properties
@@ -201,6 +202,27 @@ public class Log4jAppender extends AppenderSkeleton
 
     public void setAzureBlobCompressionEnabled(String enable) {
         getBlobConfiguration().setCompressionEnabled(Boolean.parseBoolean(enable));
+    }
+
+    // Google Cloud Storage properties
+    ///////////////////////////////////////////////////////////////////////////
+    private CloudStorageConfiguration getCloudStorageConfiguration() {
+        if (null == cloudStorageConfiguration) {
+            cloudStorageConfiguration = new CloudStorageConfiguration();
+        }
+        return cloudStorageConfiguration;
+    }
+
+    public void setGcpStorageBucket(String bucketName) {
+        getCloudStorageConfiguration().setBucketName(bucketName);
+    }
+
+    public void setGcpStorageBlobNamePrefix(String namePrefix) {
+        getCloudStorageConfiguration().setBlobNamePrefix(namePrefix);
+    }
+
+    public void setGcpStorageCompressionEnabled(String enable) {
+        getCloudStorageConfiguration().setCompressionEnabled(Boolean.parseBoolean(enable));
     }
 
     // Solr properties
@@ -311,21 +333,35 @@ public class Log4jAppender extends AppenderSkeleton
 
     IBufferPublisher<Event> createCachePublisher() {
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, tags);
-        if (null != s3 && StringUtils.isTruthy(s3.getBucket()) && StringUtils.isTruthy(s3.getPath())) {
+        if (null != s3Configuration
+            && StringUtils.isTruthy(s3Configuration.getBucket())
+            && StringUtils.isTruthy(s3Configuration.getPath())
+        ) {
             if (verbose) {
-                System.out.println("Registering S3 publish helper");
+                System.out.println(String.format("Registering AWS S3 publish helper -> %s", s3Configuration));
             }
-            publisher.addHelper(new S3PublishHelper(s3, verbose));
+            publisher.addHelper(new S3PublishHelper(s3Configuration, verbose));
         }
         if (null != blobConfiguration
             && StringUtils.isTruthy(blobConfiguration.getContainerName())
             && StringUtils.isTruthy(blobConfiguration.getBlobNamePrefix())
         ) {
             if (verbose) {
-                System.out.println("Registering Azure blob publish helper");
+                System.out.println(
+                    String.format("Registering Azure Blob Storage publish helper -> %s", blobConfiguration));
             }
             publisher.addHelper(new BlobPublishHelper(blobConfiguration, verbose));
         }
+        if (null != cloudStorageConfiguration
+            && StringUtils.isTruthy(cloudStorageConfiguration.getBucketName())
+        ) {
+            if (verbose) {
+                System.out.println(
+                    String.format("Registering Google Cloud Storage publish helper -> %s", cloudStorageConfiguration));
+            }
+            publisher.addHelper(new CloudStoragePublishHelper(cloudStorageConfiguration, verbose));
+        }
+
         if (null != solr) {
             URL solrUrl = solr.getUrl();
             if (null != solrUrl) {
