@@ -44,6 +44,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Storage -->
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-s3</artifactId>
@@ -54,18 +55,24 @@
                 <artifactId>azure-storage</artifactId>
                 <version>8.6.3</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-storage</artifactId>
+                <version>1.106.0</version>
+            </dependency>
 
+            <!-- Search -->
             <dependency>
                 <groupId>org.apache.solr</groupId>
                 <artifactId>solr-solrj</artifactId>
                 <version>6.6.6</version>
             </dependency>
-
             <dependency>
                 <groupId>org.elasticsearch.client</groupId>
                 <artifactId>transport</artifactId>
                 <version>5.4.3</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

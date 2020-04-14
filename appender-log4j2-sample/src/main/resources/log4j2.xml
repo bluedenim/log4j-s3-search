@@ -39,6 +39,11 @@
       <!-- Uncomment below to apply GZIP compression on content sent to Azure blob storage -->
         <!-- <azureBlobCompressionEnabled>true</azureBlobCompressionEnabled> -->
 
+      <!-- Uncomment AND configure the lines below to enable upload to Google Cloud Platform's Storage service -->
+        <!-- <gcpStorageBucket>mybucket</gcpStorageBucket> -->
+        <!-- <gcpStorageBlobNamePrefix>logs/exampleApplication2/</gcpStorageBlobNamePrefix> -->
+        <!-- <gcpStorageCompressionEnabled>true</gcpStorageCompressionEnabled> -->
+
       <!-- Uncomment AND configure the line below to enable upload to SOLR -->
         <!--<solrUrl>http://localhost:8983/solr/gettingstarted/</solrUrl>-->
 
