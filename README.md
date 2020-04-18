@@ -14,6 +14,19 @@ configuration is found for S3, for instance, the appender will not attempt to pu
 is not configuration for Apache Solr, the appender will not attempt to publish to Solr.
 
 
+## Prerequisites
+
+The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should work
+for all Java versions 8+; you can just either download the JARs or add the appropriate dependency
+stanzas into your build configuration.
+
+[Java SDK (JDK) 8](https://docs.oracle.com/javase/8/) is required **ONLY for cases when you want to build the projects
+locally**. 
+
+Note that using [Java SDK (JDK) 14](https://docs.oracle.com/en/java/javase/14/) to build the projects locally will
+have errors. You can try basing your work on [PR 59](https://github.com/bluedenim/log4j-s3-search/pull/59) if you
+really need to build with the newer JDKs.
+
 ## Packages
 The project is broken up into several packages:
 
