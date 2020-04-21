@@ -36,11 +36,14 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      * The instance will create a buffer of the capacity specified and will
      * publish a batch when collected events reach that capacity.
      *
+     * To keep memory footprint down, the cache of events collected will be
+     * implemented in a temporary file instead of in memory.
+     *
      * @param cacheName name for the buffer
      * @param cacheMonitor the monitor for the buffer that will determine when
-     *                     and effect the flushing and publishing of the cache.
-     * is published
-     * @param cachePublisher the publishing collaborator
+     *                     to trigger the flushing and publishing of the cache.
+     * @param cachePublisher the publishing collaborator used to perform the
+     *                       actual publishing of collected events.
      *
      * @throws Exception if errors occurred during instantiation
      */
@@ -63,7 +66,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
            */
            this.objectOutputStreamRef.set(
                new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
-            this.eventCount.set(0);
+           this.eventCount.set(0);
         }
 
         executorService = createExecutorService();
@@ -158,6 +161,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
             } catch (Throwable t) {
                 System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
                 t.printStackTrace();
+                success = false;
             }
             return success;
         });
