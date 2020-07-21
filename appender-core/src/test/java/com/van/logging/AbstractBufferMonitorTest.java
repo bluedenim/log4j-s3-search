@@ -1,7 +1,6 @@
 package com.van.logging;
 
 import org.junit.Before;
-import java.util.concurrent.Future;
 
 /**
  * Abstract base class for monitor tests. Shared facilities for testing
@@ -12,10 +11,9 @@ public abstract class AbstractBufferMonitorTest {
 
     protected IFlushAndPublish publisher = new IFlushAndPublish() {
         @Override
-        public Future<Boolean> flushAndPublish() {
+        public void flushAndPublish() {
             System.out.println("flushAndPublish() called.");
             publishCount++;
-            return null;
         }
     };
 

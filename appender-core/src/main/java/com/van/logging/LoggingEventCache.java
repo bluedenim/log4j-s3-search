@@ -1,9 +1,12 @@
 package com.van.logging;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * An event cache that buffers/collects events and publishes them in a
@@ -21,15 +24,15 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private final String cacheName;
 
-    private File tempBufferFile;
     private final Object bufferLock = new Object();
-    private AtomicReference<ObjectOutputStream> objectOutputStreamRef =
+    private AtomicReference<List<Object>> objectOutputStreamRef =
         new AtomicReference<>();
     private AtomicInteger eventCount = new AtomicInteger();
 
     private final IBufferMonitor<T> cacheMonitor;
     private final IBufferPublisher<T> cachePublisher;
-    private final ExecutorService executorService;
+
+    private BlockingQueue<List<Object>> eventQueue = new LinkedBlockingQueue<>(100);
 
     /**
      * Creates an instance with the provided buffer publishing collaborator.
@@ -57,19 +60,14 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         this.cacheMonitor = cacheMonitor;
         this.cachePublisher = cachePublisher;
 
+        new Thread(new CacheConsumer(eventQueue)).start();
+        
         synchronized(bufferLock) {
-            tempBufferFile = File.createTempFile(this.cacheName, null);
-            /*
-            System.out.println(
-                String.format("Creating temporary file for event cache: %s",
-                    tempBufferFile));
-           */
-           this.objectOutputStreamRef.set(
-               new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
+            System.out.println("Creating event cache");
+           
+           this.objectOutputStreamRef.set(new ArrayList<Object>());
            this.eventCount.set(0);
         }
-
-        executorService = createExecutorService();
     }
 
     ExecutorService createExecutorService() {
@@ -95,7 +93,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      */
     public void add(T event) throws IOException {
         synchronized (bufferLock) {
-            objectOutputStreamRef.get().writeObject(event);
+            objectOutputStreamRef.get().add(event);
             eventCount.incrementAndGet();
         }
         cacheMonitor.eventAdded(event, this);
@@ -104,67 +102,61 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     /**
      * Publish the current staging log to remote stores if the staging log
      * is not empty.
-     *
-     * @return a Future &lt;Boolean&gt; representing the result of the flush
-     * and publish operation. Caller can call {@link Future#get()} on it to
-     * wait for the operation. NOTE: This value CAN BE null if there was nothing
-     * to publish.
      */
     @Override
-    public Future<Boolean> flushAndPublish() {
-        Future<Boolean> f = null;
+    public void flushAndPublish() {
         if (eventCount.get() > 0) {
-            f = publishCache(cacheName);
+        	queueCache(cacheName);
         }
-        return f;
     }
 
-    @SuppressWarnings("unchecked")
-    Future<Boolean> publishCache(final String name) {
-        return executorService.submit(() -> {
-            boolean success = true;
-            try {
-                Thread.currentThread().setName(PUBLISH_THREAD_NAME);
-                PublishContext context = cachePublisher.startPublish(cacheName);
+    void queueCache(final String name) {
+        synchronized (bufferLock) {
+			try {
+	        	//System.out.println("Creating clone from cache for producer queue");
+				eventQueue.put(objectOutputStreamRef.get().stream().collect(Collectors.toList()));
+			} catch (InterruptedException e) {
+				System.err.println(String.format("Error while adding cache to queue : %s", e.getMessage()));
+				e.printStackTrace();
+			}
+			objectOutputStreamRef.get().clear();
+			this.eventCount.set(0);
+        }
+    }
 
-                int count = 0;
-                File tempFile = null;
-
-                synchronized (bufferLock) {
-                    objectOutputStreamRef.get().close();
-
-                    tempFile = this.tempBufferFile;
-                    count = this.eventCount.get();
-                    tempBufferFile = File.createTempFile(this.cacheName, null);
-                    /*
-                    System.out.println(
-                        String.format("Creating temporary file for event cache: %s",
-                            tempBufferFile));
-                    */
-                    this.objectOutputStreamRef.set(
-                        new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
-                    this.eventCount.set(0);
+	@SuppressWarnings("unchecked")
+	private Boolean publishCache(List<Object> eventList) {
+		PublishContext context = cachePublisher.startPublish(cacheName + System.currentTimeMillis());
+		boolean success = true;
+		try {
+		    //System.out.println("Publishing cached event list");
+		    for (int i = 0; i < eventList.size(); i++) {
+	            cachePublisher.publish(context, eventList.size(), (T) eventList.get(i));
+	        }
+	        cachePublisher.endPublish(context);
+		} catch (Throwable t) {
+		    System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
+		    t.printStackTrace();
+		    success = false;
+		}
+		return success;
+	}
+    
+    public class CacheConsumer implements Runnable {
+        private BlockingQueue<List<Object>> queue;
+        
+        public CacheConsumer(BlockingQueue<List<Object>> queue) {
+            this.queue = queue;
+        }
+        public void run() {
+        	while (true) {
+        		try {
+                	publishCache(queue.take());
+                } catch (Throwable t) {
+                	t.printStackTrace();
                 }
-                // System.out.println(String.format("Publishing from file: %s", tempFile));
-                try (FileInputStream fis = new FileInputStream(tempFile);
-                     ObjectInputStream ois = new ObjectInputStream(fis)) {
-                    for (int i = 0; i < count; i++) {
-                        cachePublisher.publish(context, count, (T) ois.readObject());
-                    }
-                    cachePublisher.endPublish(context);
-                } finally {
-                    try {
-                        tempFile.delete();
-                    } catch (Exception ex) {
-                    }
-                }
-            } catch (Throwable t) {
-                System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
-                t.printStackTrace();
-                success = false;
             }
-            return success;
-        });
+        }
     }
 }
 
