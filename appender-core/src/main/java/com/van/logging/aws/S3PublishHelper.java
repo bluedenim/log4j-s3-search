@@ -82,8 +82,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         } else {
             key = context.getCacheName();
         }
-		System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
-			bucket, key));
+		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
+			bucket, key)); */
 
         try {
             // System.out.println(String.format("Publishing content of %s to S3.", tempFile));
