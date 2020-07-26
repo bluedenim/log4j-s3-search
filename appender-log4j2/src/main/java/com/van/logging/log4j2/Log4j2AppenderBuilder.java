@@ -141,7 +141,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
 
     Optional<S3Configuration> getS3ConfigIfEnabled() {
         Optional<S3Configuration> s3Config = Optional.empty();
-        if (StringUtils.isTruthy(s3Bucket) && StringUtils.isTruthy(s3Path)) {
+        if (StringUtils.isTruthy(s3Bucket)) {
             S3Configuration config = new S3Configuration();
             config.setBucket(s3Bucket);
             config.setPath(s3Path);

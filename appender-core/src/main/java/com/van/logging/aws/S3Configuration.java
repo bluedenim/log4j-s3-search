@@ -10,7 +10,6 @@ import com.amazonaws.regions.Regions;
  *
  */
 public class S3Configuration {
-    public static final String DEFAULT_LOG_BUCKETPATH = "logs/";
 
     /**
      * SSE options when using S3
@@ -51,7 +50,7 @@ public class S3Configuration {
     private String sessionToken = null;
     private Region region = null;
     private String bucket = null;
-    private String path = DEFAULT_LOG_BUCKETPATH;
+    private String path = null;
 
     private String serviceEndpoint = null;
     private String signingRegion = null;
@@ -161,8 +160,14 @@ public class S3Configuration {
     }
 
     public String toString() {
-        return String.format("S3 configuration (%s:%s in region %s; compressed: %s)",
-            this.bucket, this.path, this.region, this.compressionEnabled
-        );
+        if (this.path != null && !this.path.isEmpty()) {
+            return String.format("S3 configuration (%s:%s in region %s; compressed: %s)",
+                    this.bucket, this.path, this.region, this.compressionEnabled
+            );
+        } else {
+            return String.format("S3 configuration (%s in region %s; compressed: %s)",
+                    this.bucket, this.region, this.compressionEnabled
+            );
+        }
     }
 }
