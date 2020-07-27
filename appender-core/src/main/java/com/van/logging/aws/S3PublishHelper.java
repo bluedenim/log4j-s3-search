@@ -1,6 +1,7 @@
 package com.van.logging.aws;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
@@ -35,6 +36,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
     private final String path;
     private String key;
     private final S3Configuration.S3SSEConfiguration sseConfig;
+    private final CannedAccessControlList cannedAcl;
 
     private volatile boolean bucketExists = false;
 
@@ -58,6 +60,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
             this.path = null;
         }
         this.sseConfig = s3.getSseConfiguration();
+        this.cannedAcl = s3.getCannedAcl();
     }
 
     @Override
@@ -97,7 +100,11 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
                 metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
             }
 
-            PutObjectRequest por = new PutObjectRequest(bucket, key, file);
+            PutObjectRequest por;
+            if (cannedAcl != null)
+                por = new PutObjectRequest(bucket, key, file).withCannedAcl(cannedAcl);
+            else
+                por = new PutObjectRequest(bucket, key, file);
             por.setMetadata(metadata);
 
             PutObjectResult result = client.putObject(por);

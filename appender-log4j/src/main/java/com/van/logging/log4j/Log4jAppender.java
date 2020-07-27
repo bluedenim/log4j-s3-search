@@ -1,5 +1,6 @@
 package com.van.logging.log4j;
 
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.van.logging.*;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
@@ -47,6 +48,7 @@ import java.util.UUID;
  *   <li>s3Bucket -- the bucket name in S3 to use</li>
  *   <li>s3Path -- (optional) the path (key prefix) to use to compose the final key
  *     to use to store the log events batch</li>
+ *   <li>s3CannedAcl -- (optional) the pre-configured access control policy to use</li>
  * </ul>
  * <em>NOTES</em>:
  * <ul>
@@ -177,6 +179,30 @@ public class Log4jAppender extends AppenderSkeleton
             null
         );
         getS3Configuration().setSseConfiguration(sseConfig);
+    }
+
+    /**
+     * private | public-read | public-read-write | authenticated-read | bucket-owner-read | bucket-owner-full-control | log-delivery-write
+     *
+     * @param acl
+     */
+    public void setS3CannedAcl(String acl) {
+        if (acl.equalsIgnoreCase("private"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.Private);
+        else if (acl.equalsIgnoreCase("public-read") || acl.equalsIgnoreCase("publicread"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.PublicRead);
+        else if (acl.equalsIgnoreCase("public-read-write") || acl.equalsIgnoreCase("publicreadwrite"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.PublicReadWrite);
+        else if (acl.equalsIgnoreCase("authenticated-read") || acl.equalsIgnoreCase("authenticatedread"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.AuthenticatedRead);
+        else if (acl.equalsIgnoreCase("bucket-owner-read") || acl.equalsIgnoreCase("bucketownerread"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.BucketOwnerRead);
+        else if (acl.equalsIgnoreCase("bucket-owner-full-control") || acl.equalsIgnoreCase("bucketownerfullcontrol"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
+        else if (acl.equalsIgnoreCase("log-delivery-write") || acl.equalsIgnoreCase("logdeliverywrite"))
+            getS3Configuration().setCannedAcl(CannedAccessControlList.LogDeliveryWrite);
+        else
+            getS3Configuration().setCannedAcl(CannedAccessControlList.Private);
     }
 
     // Azure blob properties

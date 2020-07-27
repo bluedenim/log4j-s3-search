@@ -2,6 +2,7 @@ package com.van.logging.aws;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.van.logging.utils.StringUtils;
 
 /**
@@ -59,6 +60,8 @@ public class S3Configuration {
     private boolean compressionEnabled = false;
     private S3SSEConfiguration sseConfiguration = null;
 
+    private CannedAccessControlList cannedAcl = null;
+
     public String getAccessKey() {
         return accessKey;
     }
@@ -86,6 +89,13 @@ public class S3Configuration {
         this.sseConfiguration = sseConfiguration;
     }
 
+    public CannedAccessControlList getCannedAcl() {
+        return cannedAcl;
+    }
+
+    public void setCannedAcl(CannedAccessControlList cannedAcl) {
+        this.cannedAcl = cannedAcl;
+    }
     /**
      * Sets the region to use when building the S3 client. The value can be the
      * "lowercase dash" format used in AWS literature (e.g. "us-west-2", "eu-west-1")
