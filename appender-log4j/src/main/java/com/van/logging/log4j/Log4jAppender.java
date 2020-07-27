@@ -45,7 +45,7 @@ import java.util.UUID;
  *   <li>s3SecretKey -- (optional) the secret key component of the AWS
  *     credentials</li>
  *   <li>s3Bucket -- the bucket name in S3 to use</li>
- *   <li>s3Path -- the path (key prefix) to use to compose the final key
+ *   <li>s3Path -- (optional) the path (key prefix) to use to compose the final key
  *     to use to store the log events batch</li>
  * </ul>
  * <em>NOTES</em>:
@@ -335,7 +335,6 @@ public class Log4jAppender extends AppenderSkeleton
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, tags);
         if (null != s3Configuration
             && StringUtils.isTruthy(s3Configuration.getBucket())
-            && StringUtils.isTruthy(s3Configuration.getPath())
         ) {
             if (verbose) {
                 System.out.println(String.format("Registering AWS S3 publish helper -> %s", s3Configuration));

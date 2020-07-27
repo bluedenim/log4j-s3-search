@@ -6,9 +6,10 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.PublishContext;
+import com.van.logging.utils.StringUtils;
 import org.apache.http.entity.ContentType;
 
-import java.io.*;
+import java.io.File;
 
 import static com.van.logging.aws.AwsClientHelpers.buildClient;
 
@@ -32,6 +33,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
     private final AmazonS3Client client;
     private final String bucket;
     private final String path;
+    private String key;
     private final S3Configuration.S3SSEConfiguration sseConfig;
 
     private volatile boolean bucketExists = false;
@@ -46,10 +48,14 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
         this.bucket = s3.getBucket().toLowerCase();
         String path = s3.getPath();
-        if (!path.endsWith("/")) {
-            this.path = path + "/";
+        if (StringUtils.isTruthy(path)) {
+            if (!path.endsWith("/")) {
+                this.path = path + "/";
+            } else {
+                this.path = path;
+            }
         } else {
-            this.path = path;
+            this.path = null;
         }
         this.sseConfig = s3.getSseConfiguration();
     }
@@ -72,7 +78,11 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
     @Override
     protected void publishFile(File file, PublishContext context) {
-        String key = String.format("%s%s", this.path, context.getCacheName());
+        if (this.path != null) {
+            key = String.format("%s%s", this.path, context.getCacheName());
+        } else {
+            key = context.getCacheName();
+        }
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
 			bucket, key)); */
 

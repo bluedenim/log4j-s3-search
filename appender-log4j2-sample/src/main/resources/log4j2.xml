@@ -18,6 +18,8 @@
 
       <!-- Uncomment AND configure the lines below to enable upload to S3 -->
         <!--        <s3Bucket>mybucket</s3Bucket>-->
+        <!-- Optional config to define the path (key prefix) to use to create custom folder structure under bucket -->
+        <!-- If not specified, defaults to writing file(s) directly under bucket -->
         <!--        <s3Path>logs/exampleApplication2/</s3Path>-->
 
         <!--<s3Region>us-west-2</s3Region>-->
