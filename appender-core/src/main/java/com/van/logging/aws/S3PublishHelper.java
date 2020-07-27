@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.PublishContext;
+import com.van.logging.utils.StringUtils;
 import org.apache.http.entity.ContentType;
 
 import java.io.File;
@@ -47,7 +48,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
         this.bucket = s3.getBucket().toLowerCase();
         String path = s3.getPath();
-        if (path != null && !path.isEmpty()) {
+        if (StringUtils.isTruthy(path)) {
             if (!path.endsWith("/")) {
                 this.path = path + "/";
             } else {

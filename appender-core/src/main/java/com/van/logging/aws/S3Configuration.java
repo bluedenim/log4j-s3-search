@@ -2,6 +2,7 @@ package com.van.logging.aws;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.van.logging.utils.StringUtils;
 
 /**
  * S3 connectivity/configuration
@@ -160,7 +161,7 @@ public class S3Configuration {
     }
 
     public String toString() {
-        if (this.path != null && !this.path.isEmpty()) {
+        if (StringUtils.isTruthy(this.path)) {
             return String.format("S3 configuration (%s:%s in region %s; compressed: %s)",
                     this.bucket, this.path, this.region, this.compressionEnabled
             );
