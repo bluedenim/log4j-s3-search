@@ -14,5 +14,19 @@ public interface IFlushAndPublish {
      * @return Future &lt;Boolean&gt; for the result. This CAN BE
      * <code>null</code> if there was nothing published.
      */
-    Future<Boolean> flushAndPublish();
+    default Future<Boolean> flushAndPublish() {
+        return this.flushAndPublish(false);
+    }
+
+    /**
+     * Flush and publish cached content and return a Future &lt;Boolean&gt;
+     * for the result.
+     *
+     * @param useCurrentThread: if True, publish using the current thread instead of a background thread. This should
+     *     not be true in normal cases. One case where it should be true is when called from the shutdown hook.
+     *
+     * @return Future &lt;Boolean&gt; for the result. This CAN BE
+     * <code>null</code> if there was nothing published.
+     */
+    public Future<Boolean> flushAndPublish(boolean useCurrentThread);
 }

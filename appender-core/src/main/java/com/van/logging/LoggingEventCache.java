@@ -35,9 +35,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private File tempBufferFile;
     private final Object bufferLock = new Object();
-    private AtomicReference<ObjectOutputStream> objectOutputStreamRef =
-        new AtomicReference<>();
-    private AtomicInteger eventCount = new AtomicInteger();
+    private final AtomicReference<ObjectOutputStream> objectOutputStreamRef = new AtomicReference<>();
+    private final AtomicInteger eventCount = new AtomicInteger();
 
     private final IBufferMonitor<T> cacheMonitor;
     private final IBufferPublisher<T> cachePublisher;
@@ -113,26 +112,43 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         cacheMonitor.eventAdded(event, this);
     }
 
-    /**
-     * Publish the current staging log to remote stores if the staging log
-     * is not empty.
-     *
-     * @return a Future &lt;Boolean&gt; representing the result of the flush
-     * and publish operation. Caller can call {@link Future#get()} on it to
-     * wait for the operation. NOTE: This value CAN BE null if there was nothing
-     * to publish.
-     */
     @Override
-    public Future<Boolean> flushAndPublish() {
+    public Future<Boolean> flushAndPublish(boolean useCurrentThread) {
         Future<Boolean> f = null;
         if (eventCount.get() > 0) {
-            f = publishCache(cacheName);
+            f = publishCache(cacheName, useCurrentThread);
         }
         return f;
     }
 
     @SuppressWarnings("unchecked")
-    Future<Boolean> publishCache(final String name) {
+    void publishEventsFromFile(final AtomicReference<File> fileToPublishRef, final AtomicInteger eventCount) {
+        try {
+            PublishContext context = cachePublisher.startPublish(cacheName);
+            File fileToPublish = fileToPublishRef.get();
+
+            // System.out.println(String.format("Publishing from file: %s", tempFile));
+            try (FileInputStream fis = new FileInputStream(fileToPublish);
+                 ObjectInputStream ois = new ObjectInputStream(fis)) {
+                for (int i = 0; i < eventCount.get(); i++) {
+                    cachePublisher.publish(context, i, (T) ois.readObject());
+                }
+                cachePublisher.endPublish(context);
+            } finally {
+                try {
+                    fileToPublish.delete();
+                } catch (Exception ex) {
+                }
+            }
+        } catch (Throwable t) {
+            System.err.println(
+                String.format("Error while publishing cache from publishing thread: %s", t.getMessage())
+            );
+            t.printStackTrace();
+        }
+    }
+
+    Future<Boolean> publishCache(final String name, final boolean useCurrentThread) {
         final AtomicReference<File> fileToPublishRef = new AtomicReference<>();
         final AtomicInteger eventCountInPublishFile = new AtomicInteger();
         boolean success = true;
@@ -149,33 +165,17 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 eventCount.set(0);
             }
 
-            // Fire off a thread to actually publish to the external stores.
-            executorService.submit(() -> {
-                try {
+            if (useCurrentThread) {
+                publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
+            } else {
+                final LoggingEventCache<T> me = this;
+                // Fire off a thread to actually publish to the external stores. Publishing asynchronously will allow
+                // the main program to get back to business instead of blocking for the network and file IO.
+                executorService.submit(() -> {
                     Thread.currentThread().setName(PUBLISH_THREAD_NAME);
-                    PublishContext context = cachePublisher.startPublish(cacheName);
-                    File fileToPublish = fileToPublishRef.get();
-
-                    // System.out.println(String.format("Publishing from file: %s", tempFile));
-                    try (FileInputStream fis = new FileInputStream(fileToPublish);
-                         ObjectInputStream ois = new ObjectInputStream(fis)) {
-                        for (int i = 0; i < eventCountInPublishFile.get(); i++) {
-                            cachePublisher.publish(context, i, (T) ois.readObject());
-                        }
-                        cachePublisher.endPublish(context);
-                    } finally {
-                        try {
-                            fileToPublish.delete();
-                        } catch (Exception ex) {
-                        }
-                    }
-                } catch (Throwable t) {
-                    System.err.println(
-                        String.format("Error while publishing cache from publishing thread: %s", t.getMessage())
-                    );
-                    t.printStackTrace();
-                }
-            });
+                    me.publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
+                });
+            }
 
         } catch (Throwable t) {
             System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));

@@ -37,7 +37,7 @@ public class Log4j2Appender extends AbstractAppender {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 LOGGER.debug("Publishing staging log on shutdown...");
-                eventCache.flushAndPublish();
+                eventCache.flushAndPublish(true);
             }
         });
     }

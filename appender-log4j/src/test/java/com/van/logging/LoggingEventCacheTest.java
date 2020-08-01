@@ -3,6 +3,7 @@ package com.van.logging;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -12,6 +13,30 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.log4j.Level.INFO;
+
+
+class PublisherWithPublishCount implements IBufferPublisher<LoggingEvent> {
+    final List<LoggingEvent> events = new LinkedList<>();
+
+    @Override
+    public PublishContext startPublish(String cacheName) {
+        return new PublishContext("blah",
+            "blah", new String[] {});
+    }
+
+    @Override
+    public void publish(PublishContext context, int sequence, final LoggingEvent event) {
+        events.add(event);
+    }
+
+    @Override
+    public void endPublish(PublishContext context) {
+    }
+
+    public int getPublishedEventCount() {
+        return events.size();
+    }
+}
 
 
 /**
@@ -27,34 +52,21 @@ public class LoggingEventCacheTest {
     final int BATCH_PERIOD_SECS = 3;
 
     final Logger logger = Logger.getLogger("blah");
+    PublisherWithPublishCount publisher;
+
+    @Before
+    public void setUp() {
+        publisher = new PublisherWithPublishCount();
+    }
 
     /**
      * Make sure batch flushes do not lose any entries.
      */
     @Test
-    @SuppressWarnings("unchecked")
     public void testBatchFlushing() {
-        final List<LoggingEvent> events = new LinkedList<LoggingEvent>();
-
-        IBufferPublisher<LoggingEvent> publisher = new IBufferPublisher<LoggingEvent>() {
-            @Override
-            public PublishContext startPublish(String cacheName) {
-                return new PublishContext("blah",
-                    "blah", new String[] {});
-            }
-
-            @Override
-            public void publish(PublishContext context, int sequence, final LoggingEvent event) {
-                events.add(event);
-            }
-
-            @Override
-            public void endPublish(PublishContext context) {
-            }
-        };
         try {
-            LoggingEventCache cache = new LoggingEventCache(
-                "blah", new CapacityBasedBufferMonitor(BATCH_SIZE), publisher);
+            LoggingEventCache<LoggingEvent> cache = new LoggingEventCache<>(
+                "blah", new CapacityBasedBufferMonitor<>(BATCH_SIZE), publisher);
             for (int i = 0; i < EVENT_COUNT; i++) {
                 cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
                     String.format("Event %d", i),
@@ -63,35 +75,17 @@ public class LoggingEventCacheTest {
             cache.flushAndPublish();
             Thread.sleep(1000); // Give the publishing thread some time to finish
             // The events list should contain eventCount entries if we published without skipping
-            Assert.assertEquals("All events published", EVENT_COUNT, events.size());
+            Assert.assertEquals("All events published", EVENT_COUNT, publisher.getPublishedEventCount());
         } catch (Exception ex) {
             Assert.fail(String.format("Unexpected exception: %s", ex));
         }
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testTimeFlushing() {
-        final List<LoggingEvent> events = new LinkedList<LoggingEvent>();
-        IBufferPublisher<LoggingEvent> publisher = new IBufferPublisher<LoggingEvent>() {
-            @Override
-            public PublishContext startPublish(String cacheName) {
-                return new PublishContext("blah",
-                    "blah", new String[] {});
-            }
-
-            @Override
-            public void publish(PublishContext context, int sequence, final LoggingEvent event) {
-                events.add(event);
-            }
-
-            @Override
-            public void endPublish(PublishContext context) {
-            }
-        };
         try {
-            LoggingEventCache cache = new LoggingEventCache(
-                "blah", new TimePeriodBasedBufferMonitor(BATCH_PERIOD_SECS, TimeUnit.SECONDS), publisher);
+            LoggingEventCache<LoggingEvent> cache = new LoggingEventCache<>(
+                "blah", new TimePeriodBasedBufferMonitor<>(BATCH_PERIOD_SECS, TimeUnit.SECONDS), publisher);
             long start = System.currentTimeMillis();
             for (int i = 0; i < EVENT_COUNT; i++) {
                 cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
@@ -112,7 +106,28 @@ public class LoggingEventCacheTest {
                 }
                 now = System.currentTimeMillis();
             }
-            Assert.assertEquals("All events published", EVENT_COUNT, events.size());
+            Assert.assertEquals("All events published", EVENT_COUNT, publisher.getPublishedEventCount());
+        } catch (Exception ex) {
+            Assert.fail(String.format("Unexpected exception: %s", ex));
+        }
+    }
+
+    @Test
+    public void testPublishInCurrentThread() {
+        try {
+            LoggingEventCache<LoggingEvent> cache = new LoggingEventCache<>(
+                "blah", new CapacityBasedBufferMonitor<>(BATCH_SIZE), publisher);
+
+            int eventsToPublish = BATCH_SIZE / 2;
+            for (int i = 0; i < eventsToPublish; i++) {
+                cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
+                    String.format("Event %d", i),
+                    null));
+            }
+            cache.flushAndPublish(true);
+            Assert.assertEquals("Correct number of events published",
+                eventsToPublish, publisher.getPublishedEventCount());
+
         } catch (Exception ex) {
             Assert.fail(String.format("Unexpected exception: %s", ex));
         }
