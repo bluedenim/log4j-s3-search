@@ -9,6 +9,17 @@ import java.util.concurrent.atomic.AtomicReference;
  * An event cache that buffers/collects events and publishes them in a
  * background thread when the buffer fills up.
  *
+ * Implementation notes:
+ *
+ * The publishing of buffered events is done in another publishing thread (provided by this.executorService).
+ * Depending on the incoming log event rates and the buffer size, the publishing may be overwhelmed if log events
+ * are added faster than they can be published.
+ *
+ * Things that can be tweaked:
+ *   - Buffer size or time setting for the buffer monitors (increasing the buffer size or time period will allow
+ *     the buffer to store more events between publishes, giving more time for the publisher).
+ *   - Increasing the number of threads (PUBLISHING_THREADS) for this.executorService.
+ *
  * @author vly
  *
  */
@@ -16,6 +27,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     public static final String PUBLISH_THREAD_NAME =
         "LoggingEventCache-publish-thread";
+    private static final int PUBLISHING_THREADS = 3;
 
     private static final String DEFAULT_TEMP_FILE_PREFIX = "log4j-s3";
 
@@ -73,7 +85,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     }
 
     ExecutorService createExecutorService() {
-        return Executors.newFixedThreadPool(1);
+        return Executors.newFixedThreadPool(PUBLISHING_THREADS);
     }
 
     /**
@@ -121,50 +133,56 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     @SuppressWarnings("unchecked")
     Future<Boolean> publishCache(final String name) {
-        return executorService.submit(() -> {
-            boolean success = true;
-            try {
-                Thread.currentThread().setName(PUBLISH_THREAD_NAME);
-                PublishContext context = cachePublisher.startPublish(cacheName);
+        final AtomicReference<File> fileToPublishRef = new AtomicReference<>();
+        final AtomicInteger eventCountInPublishFile = new AtomicInteger();
+        boolean success = true;
+        try {
+            synchronized (bufferLock) {
+                objectOutputStreamRef.get().close();
 
-                int count = 0;
-                File tempFile = null;
+                fileToPublishRef.set(tempBufferFile);
+                eventCountInPublishFile.set(eventCount.get());
 
-                synchronized (bufferLock) {
-                    objectOutputStreamRef.get().close();
-
-                    tempFile = this.tempBufferFile;
-                    count = this.eventCount.get();
-                    tempBufferFile = File.createTempFile(this.cacheName, null);
-                    /*
-                    System.out.println(
-                        String.format("Creating temporary file for event cache: %s",
-                            tempBufferFile));
-                    */
-                    this.objectOutputStreamRef.set(
-                        new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
-                    this.eventCount.set(0);
-                }
-                // System.out.println(String.format("Publishing from file: %s", tempFile));
-                try (FileInputStream fis = new FileInputStream(tempFile);
-                     ObjectInputStream ois = new ObjectInputStream(fis)) {
-                    for (int i = 0; i < count; i++) {
-                        cachePublisher.publish(context, count, (T) ois.readObject());
-                    }
-                    cachePublisher.endPublish(context);
-                } finally {
-                    try {
-                        tempFile.delete();
-                    } catch (Exception ex) {
-                    }
-                }
-            } catch (Throwable t) {
-                System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
-                t.printStackTrace();
-                success = false;
+                tempBufferFile = File.createTempFile(cacheName, null);
+                // System.out.println(String.format("Creating temporary file for event cache: %s", tempBufferFile));
+                objectOutputStreamRef.set(new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
+                eventCount.set(0);
             }
-            return success;
-        });
+
+            // Fire off a thread to actually publish to the external stores.
+            executorService.submit(() -> {
+                try {
+                    Thread.currentThread().setName(PUBLISH_THREAD_NAME);
+                    PublishContext context = cachePublisher.startPublish(cacheName);
+                    File fileToPublish = fileToPublishRef.get();
+
+                    // System.out.println(String.format("Publishing from file: %s", tempFile));
+                    try (FileInputStream fis = new FileInputStream(fileToPublish);
+                         ObjectInputStream ois = new ObjectInputStream(fis)) {
+                        for (int i = 0; i < eventCountInPublishFile.get(); i++) {
+                            cachePublisher.publish(context, i, (T) ois.readObject());
+                        }
+                        cachePublisher.endPublish(context);
+                    } finally {
+                        try {
+                            fileToPublish.delete();
+                        } catch (Exception ex) {
+                        }
+                    }
+                } catch (Throwable t) {
+                    System.err.println(
+                        String.format("Error while publishing cache from publishing thread: %s", t.getMessage())
+                    );
+                    t.printStackTrace();
+                }
+            });
+
+        } catch (Throwable t) {
+            System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
+            t.printStackTrace();
+            success = false;
+        }
+        return CompletableFuture.completedFuture(success);
     }
 }
 
