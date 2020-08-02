@@ -1,6 +1,5 @@
 package com.van.logging.log4j2;
 
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.van.logging.*;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
@@ -155,7 +154,11 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
-            config.setCannedAcl(CannedAccessControlList.valueOf(s3CannedAcl));
+            try {
+                config.setCannedAclFromValue(s3CannedAcl);
+            } catch (IllegalArgumentException ex) {
+                System.err.println(String.format("Ignoring unrecognized canned ACL value %s", s3CannedAcl));
+            }
 
             S3Configuration.S3SSEConfiguration sseConfig = null;
             if (s3SseKeyType != null) {

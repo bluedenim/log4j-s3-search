@@ -24,6 +24,10 @@
             <version>2.6.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
+                    <groupId>com.amazonaws</groupId>
+                    <artifactId>aws-java-sdk-s3</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.microsoft.azure</groupId>
                     <artifactId>azure-storage</artifactId>
                 </exclusion>

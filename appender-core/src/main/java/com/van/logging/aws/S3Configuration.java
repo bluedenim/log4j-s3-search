@@ -93,9 +93,17 @@ public class S3Configuration {
         return cannedAcl;
     }
 
-    public void setCannedAcl(CannedAccessControlList cannedAcl) {
-        this.cannedAcl = cannedAcl;
+    /**
+     * Sets the canned ACL for S3 to use when storing objects.
+     *
+     * @param cannedAclValue - the String value of the ACL to set (values for the CannedAccessControlList enum)
+     *
+     * @throws IllegalArgumentException - if the cannedAclValue cannot be mapped to a valid CannedAccessControlList enum
+     */
+    public void setCannedAclFromValue(String cannedAclValue) throws IllegalArgumentException {
+        this.cannedAcl = CannedAccessControlList.valueOf(cannedAclValue);
     }
+
     /**
      * Sets the region to use when building the S3 client. The value can be the
      * "lowercase dash" format used in AWS literature (e.g. "us-west-2", "eu-west-1")
