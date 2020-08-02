@@ -36,9 +36,7 @@
     <modules>
         <module>appender-core</module>
         <module>appender-log4j</module>
-        <module>appender-log4j-sample</module>
         <module>appender-log4j2</module>
-        <module>appender-log4j2-sample</module>
     </modules>
 
     <dependencyManagement>

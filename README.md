@@ -36,14 +36,15 @@ The project is broken up into several packages:
 * **appender-log4j** -- Log4j 1.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 1.x.
 * **appender-log4j2** -- Log4j 2.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 2.x.
 
-* **appender-log4j-sample** -- a sample client illustrating how to use the project with Log4j 1.x.
-* **appender-log4j2-sample** -- a sample client illustrating how to use the project with Log4j 2.x.
-
 
 ## Usage
 * Find out which version of Log4j your client program is using.
-  * If you're using **Log4j 1.x**, you should add **appender-core** and **appender-log4j** as dependencies. (See **appender-log4j-sample** for an example of how it's done.)
-  * If you're using **Log4j 2.x**, you should add **appender-core** and **appender-log4j2** as dependencies. (See **appender-log4j2-sample** for an example of how it's done.)
+  * If you're using **Log4j 1.x**, you should add **appender-core** and **appender-log4j** as dependencies. 
+  (See **appender-log4j-sample** from [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) 
+  for an example of how it's done.)
+  * If you're using **Log4j 2.x**, you should add **appender-core** and **appender-log4j2** as dependencies. 
+  (See **appender-log4j2-sample** from [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) 
+  for an example of how it's done.)
 
 ### Maven Dependencies
  
@@ -86,41 +87,8 @@ _Please ignore the non-semver versions **2.0** and **0.3.0**_.
 
 ## Running the sample programs
 
-NOTE that the sample programs set up a very small batch size (publish every 10 entries) for illustration purposes. 
-In your programs you will most likely use a much higher number for the **stagingBufferSize** property.
-
-### Log4j Example
-To run the sample program **appender-log4j-sample**:
-
-```
-cd appender-log4j-sample
-```
-Modify `src\main\resources\log4j.properties` to use _your storage configuration_.
-```
-mvn clean install
-mvn assembly:assembly
-java -cp target\log4j-s3-search-log4j-sample-jar-with-dependencies.jar com.van.example.Main
-```
-
-### Log4j 2.x Example
-To run the sample program **appender-log4j2-sample**:
-
-```
-cd appender-log4j2-sample
-```
-Modify `src\main\resources\log4j2.xml` to use _your storage configuration_.
-```
-mvn clean install
-java -cp target\log4j-s3-search-log4j2-sample.jar com.van.example.Main
-```
-
-_There is currently some complication w/ Log4j 2 such that the packaging is done differently than 
-that for the Log4j 1.x example. The method used is documented [here.](https://stackoverflow.com/questions/34945438/log4j2-configuration-not-found-when-running-standalone-application-builded-by-sh/34946780)_
-
-### Log4j 1.x Notes
-There is currently a security vulnerability with Log4j 1.x (https://github.com/advisories/GHSA-2qrg-x229-3v8q). 
-
-In addition, Log4j hasn't been worked on since mid-2012. All activities have gone into Log4j 2.x.
+Please consult the [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) project for sample
+programs using this library for both Log4j and Log4j2.
 
 
 ## Configuration
