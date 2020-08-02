@@ -68,6 +68,9 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     @PluginBuilderAttribute
     private String s3SseKeyType;
 
+    @PluginBuilderAttribute
+    private String s3CannedAcl;
+
     // Azure blob properties
     @PluginBuilderAttribute
     private String azureStorageConnectionString;
@@ -151,6 +154,11 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
+            try {
+                config.setCannedAclFromValue(s3CannedAcl);
+            } catch (IllegalArgumentException ex) {
+                System.err.println(String.format("Ignoring unrecognized canned ACL value %s", s3CannedAcl));
+            }
 
             S3Configuration.S3SSEConfiguration sseConfig = null;
             if (s3SseKeyType != null) {

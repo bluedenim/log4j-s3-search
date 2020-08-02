@@ -47,6 +47,7 @@ import java.util.UUID;
  *   <li>s3Bucket -- the bucket name in S3 to use</li>
  *   <li>s3Path -- (optional) the path (key prefix) to use to compose the final key
  *     to use to store the log events batch</li>
+ *   <li>s3CannedAcl -- (optional) the pre-configured access control policy to use</li>
  * </ul>
  * <em>NOTES</em>:
  * <ul>
@@ -177,6 +178,14 @@ public class Log4jAppender extends AppenderSkeleton
             null
         );
         getS3Configuration().setSseConfiguration(sseConfig);
+    }
+
+    public void setS3CannedAcl(String acl) {
+        try {
+            getS3Configuration().setCannedAclFromValue(acl);
+        } catch (IllegalArgumentException ex) {
+            System.err.println(String.format("Ignoring unrecognized canned ACL value %s", acl));
+        }
     }
 
     // Azure blob properties

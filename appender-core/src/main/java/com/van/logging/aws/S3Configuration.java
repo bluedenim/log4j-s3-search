@@ -2,6 +2,7 @@ package com.van.logging.aws;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.van.logging.utils.StringUtils;
 
 /**
@@ -59,6 +60,8 @@ public class S3Configuration {
     private boolean compressionEnabled = false;
     private S3SSEConfiguration sseConfiguration = null;
 
+    private CannedAccessControlList cannedAcl = null;
+
     public String getAccessKey() {
         return accessKey;
     }
@@ -84,6 +87,21 @@ public class S3Configuration {
 
     public void setSseConfiguration(S3SSEConfiguration sseConfiguration) {
         this.sseConfiguration = sseConfiguration;
+    }
+
+    public CannedAccessControlList getCannedAcl() {
+        return cannedAcl;
+    }
+
+    /**
+     * Sets the canned ACL for S3 to use when storing objects.
+     *
+     * @param cannedAclValue - the String value of the ACL to set (values for the CannedAccessControlList enum)
+     *
+     * @throws IllegalArgumentException - if the cannedAclValue cannot be mapped to a valid CannedAccessControlList enum
+     */
+    public void setCannedAclFromValue(String cannedAclValue) throws IllegalArgumentException {
+        this.cannedAcl = CannedAccessControlList.valueOf(cannedAclValue);
     }
 
     /**

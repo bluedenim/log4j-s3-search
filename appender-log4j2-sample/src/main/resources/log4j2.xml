@@ -33,6 +33,11 @@
       <!-- Uncomment below to use SSE for S3. NOTE: SSE_S3 is the only supported option right now -->
         <!-- <s3SseKeyType>SSE_S3</s3SseKeyType> -->
 
+      <!-- (Optional) Uncomment to set the pre-configured access control policy to use -->
+      <!-- Allowed values: private | public-read | public-read-write | authenticated-read | bucket-owner-read | bucket-owner-full-control | log-delivery-write -->
+      <!-- See: https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl -->
+        <!-- <s3CannedAcl>bucket-owner-full-control</s3CannedAcl> -->
+
       <!-- Uncomment AND configure the lines below to enable upload to Azure blob storage -->
         <!-- <azureStorageConnectionString>DefaultEndpointsProtocol=https;AccountName=...;EndpointSuffix=core.windows.net</azureStorageConnectionString> -->
         <!-- <azureBlobContainer>mycontainer</azureBlobContainer> -->
