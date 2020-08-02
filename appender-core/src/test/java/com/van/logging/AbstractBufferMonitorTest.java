@@ -12,8 +12,8 @@ public abstract class AbstractBufferMonitorTest {
 
     protected IFlushAndPublish publisher = new IFlushAndPublish() {
         @Override
-        public Future<Boolean> flushAndPublish() {
-            System.out.println("flushAndPublish() called.");
+        public Future<Boolean> flushAndPublish(boolean useCurrentThread) {
+            System.out.println(String.format("flushAndPublish(useCurrentThread=%s) called.", useCurrentThread));
             publishCount++;
             return null;
         }

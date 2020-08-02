@@ -334,7 +334,7 @@ public class Log4jAppender extends AppenderSkeleton
                     if (verbose) {
                         System.out.println("Publishing staging log on shutdown...");
                     }
-                    stagingLog.flushAndPublish();
+                    stagingLog.flushAndPublish(true);
                 }
             });
         }
