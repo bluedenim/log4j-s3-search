@@ -27,7 +27,10 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     public static final String PUBLISH_THREAD_NAME =
         "LoggingEventCache-publish-thread";
-    private static final int PUBLISHING_THREADS = 3;
+
+    // Do not increase beyond 1 until all implementations of IBufferPublisher are thread safe or a new instance
+    // of IBufferPublisher is used for each publish operation.
+    private static final int PUBLISHING_THREADS = 1;
 
     private static final String DEFAULT_TEMP_FILE_PREFIX = "log4j-s3";
 
