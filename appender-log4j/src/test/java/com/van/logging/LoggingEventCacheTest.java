@@ -76,6 +76,7 @@ public class LoggingEventCacheTest {
             Thread.sleep(1000); // Give the publishing thread some time to finish
             // The events list should contain eventCount entries if we published without skipping
             Assert.assertEquals("All events published", EVENT_COUNT, publisher.getPublishedEventCount());
+            LoggingEventCache.getInstance().shutDown();
         } catch (Exception ex) {
             Assert.fail(String.format("Unexpected exception: %s", ex));
         }
@@ -107,6 +108,7 @@ public class LoggingEventCacheTest {
                 now = System.currentTimeMillis();
             }
             Assert.assertEquals("All events published", EVENT_COUNT, publisher.getPublishedEventCount());
+            LoggingEventCache.getInstance().shutDown();
         } catch (Exception ex) {
             Assert.fail(String.format("Unexpected exception: %s", ex));
         }
@@ -127,7 +129,7 @@ public class LoggingEventCacheTest {
             cache.flushAndPublish(true);
             Assert.assertEquals("Correct number of events published",
                 eventsToPublish, publisher.getPublishedEventCount());
-
+            LoggingEventCache.getInstance().shutDown();
         } catch (Exception ex) {
             Assert.fail(String.format("Unexpected exception: %s", ex));
         }

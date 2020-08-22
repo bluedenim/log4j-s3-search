@@ -32,6 +32,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     // of IBufferPublisher is used for each publish operation.
     private static final int PUBLISHING_THREADS = 1;
 
+    private static final long SHUTDOWN_TIMEOUT_SECS = 10;
+
     private static final String DEFAULT_TEMP_FILE_PREFIX = "log4j-s3";
 
     private final String cacheName;
@@ -45,10 +47,26 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     private final IBufferPublisher<T> cachePublisher;
     private final ExecutorService executorService;
 
+    private static LoggingEventCache instance = null;
+
+
+    /**
+     * Returns the instance of LoggingEventCache to a program. This is useful for initiating the
+     * teardown and cleanup of the cache when the program is ending (e.g. when the main thread is
+     * exiting.)
+     *
+     * @return instance of LoggingEventCache (can be null if an instance was never created)
+     */
+    public static LoggingEventCache getInstance() {
+        return instance;
+    }
+
     /**
      * Creates an instance with the provided buffer publishing collaborator.
      * The instance will create a buffer of the capacity specified and will
      * publish a batch when collected events reach that capacity.
+     *
+     * Currently, only one instance of this class can be created per process. Think of this as a Singleton class.
      *
      * To keep memory footprint down, the cache of events collected will be
      * implemented in a temporary file instead of in memory.
@@ -60,9 +78,14 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      *                       actual publishing of collected events.
      *
      * @throws Exception if errors occurred during instantiation
+     * @throws IllegalStateException if there is already an instance of the class instantiated
      */
     public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
                              IBufferPublisher<T> cachePublisher) throws Exception {
+        if (instance != null) {
+            throw new IllegalStateException("LoggingEventCache already created. Only one per process.");
+        }
+
         if (null == cacheName) {
             this.cacheName = DEFAULT_TEMP_FILE_PREFIX;
         } else {
@@ -84,10 +107,32 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         }
 
         executorService = createExecutorService();
+        instance = this;
     }
 
     ExecutorService createExecutorService() {
         return Executors.newFixedThreadPool(PUBLISHING_THREADS);
+    }
+
+    /**
+     * Starts the shutdown and cleanup of the cache. This is useful to call when a program ends in order to release
+     * any threads.
+     *
+     * @return True if the publishing thread executor service shut down successfully, False if it timed out.
+     * @throws InterruptedException if the shutdown process was interrupted.
+     */
+    public boolean shutDown() throws InterruptedException {
+        try {
+            System.out.println("LoggingEventCache: shutting down");
+            executorService.shutdown();
+            boolean terminated = executorService.awaitTermination(SHUTDOWN_TIMEOUT_SECS, TimeUnit.SECONDS);
+            System.out.println(
+                String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
+            );
+            return terminated;
+        } finally {
+            instance = null;
+        }
     }
 
     /**
