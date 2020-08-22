@@ -47,18 +47,35 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     private final IBufferPublisher<T> cachePublisher;
     private final ExecutorService executorService;
 
-    private static LoggingEventCache instance = null;
+    private static volatile LoggingEventCache instance = null;
 
 
     /**
-     * Returns the instance of LoggingEventCache to a program. This is useful for initiating the
-     * teardown and cleanup of the cache when the program is ending (e.g. when the main thread is
-     * exiting.)
+     * Shutdown and cleanup the LoggingEventCache singleton. This is useful to call when a program ends in order to
+     * release any threads.
      *
-     * @return instance of LoggingEventCache (can be null if an instance was never created)
+     * @return True if the publishing thread executor service shut down successfully, False if it timed out.
+     * @throws InterruptedException if the shutdown process was interrupted.
      */
-    public static LoggingEventCache getInstance() {
-        return instance;
+    public static boolean shutDown() throws InterruptedException {
+        boolean success = false;
+        if (null != instance) {
+            try {
+                System.out.println("LoggingEventCache: shutting down");
+                instance.executorService.shutdown();
+                boolean terminated = instance.executorService.awaitTermination(
+                    SHUTDOWN_TIMEOUT_SECS,
+                    TimeUnit.SECONDS
+                );
+                System.out.println(
+                    String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
+                );
+                success = terminated;
+            } finally {
+                instance = null;
+            }
+        }
+        return success;
     }
 
     /**
@@ -112,27 +129,6 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     ExecutorService createExecutorService() {
         return Executors.newFixedThreadPool(PUBLISHING_THREADS);
-    }
-
-    /**
-     * Starts the shutdown and cleanup of the cache. This is useful to call when a program ends in order to release
-     * any threads.
-     *
-     * @return True if the publishing thread executor service shut down successfully, False if it timed out.
-     * @throws InterruptedException if the shutdown process was interrupted.
-     */
-    public boolean shutDown() throws InterruptedException {
-        try {
-            System.out.println("LoggingEventCache: shutting down");
-            executorService.shutdown();
-            boolean terminated = executorService.awaitTermination(SHUTDOWN_TIMEOUT_SECS, TimeUnit.SECONDS);
-            System.out.println(
-                String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
-            );
-            return terminated;
-        } finally {
-            instance = null;
-        }
     }
 
     /**
@@ -224,7 +220,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                     me.publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
                 });
             }
-
+        } catch (RejectedExecutionException ex) {
+            System.err.println("ExecutorService refused submitted task. Was shutDown() called?");
         } catch (Throwable t) {
             System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
             t.printStackTrace();
