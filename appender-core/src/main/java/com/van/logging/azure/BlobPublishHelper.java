@@ -4,7 +4,9 @@ import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.OperationContext;
 import com.microsoft.azure.storage.blob.*;
 import com.van.logging.AbstractFilePublishHelper;
+import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
+import com.van.logging.utils.PublishHelperUtils;
 
 import java.io.File;
 
@@ -17,10 +19,16 @@ import java.io.File;
 public class BlobPublishHelper extends AbstractFilePublishHelper {
 
     private final BlobConfiguration blobConfiguration;
+    private final IStorageDestinationAdjuster storageDestinationAdjuster;
 
-    public BlobPublishHelper(BlobConfiguration blobConfiguration, boolean verbose) {
+    public BlobPublishHelper(
+        BlobConfiguration blobConfiguration,
+        IStorageDestinationAdjuster storageDestinationAdjuster,
+        boolean verbose
+    ) {
         super(blobConfiguration.isCompressionEnabled(), verbose);
         this.blobConfiguration = blobConfiguration;
+        this.storageDestinationAdjuster = storageDestinationAdjuster;
     }
 
     @Override
@@ -36,14 +44,11 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
         boolean created = container.createIfNotExists(
             BlobContainerPublicAccessType.CONTAINER, new BlobRequestOptions(), new OperationContext());
 
-        String prefix = "";
-        if (null != blobConfiguration.getBlobNamePrefix()) {
-            prefix = blobConfiguration.getBlobNamePrefix();
-        }
-        if (!prefix.endsWith("/")) {
-            prefix = prefix + "/";
-        }
-        String blobName = String.format("%s%s", prefix, context.getCacheName());
+        String path = PublishHelperUtils.adjustStoragePathIfNecessary(
+            blobConfiguration.getBlobNamePrefix(),
+            storageDestinationAdjuster
+        );
+        String blobName = String.format("%s%s", path, context.getCacheName());
         if (this.verbose) {
             System.out.println(String.format("Publishing %s to Azure blob (container=%s; blob=%s):",
                 file.getAbsolutePath(), blobConfiguration.getContainerName(), blobName));
