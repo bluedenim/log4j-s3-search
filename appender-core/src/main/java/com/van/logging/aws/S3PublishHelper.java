@@ -9,6 +9,7 @@ import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
 import com.van.logging.utils.PublishHelperUtils;
+import com.van.logging.utils.StringUtils;
 import org.apache.http.entity.ContentType;
 
 import java.io.File;
@@ -78,9 +79,12 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
     @Override
     protected void publishFile(File file, PublishContext context) {
-        String path = PublishHelperUtils.adjustStoragePathIfNecessary(
-            this.path,
-            storageDestinationAdjuster
+        String path = StringUtils.addTrailingIfNeeded(
+            PublishHelperUtils.adjustStoragePathIfNecessary(
+                this.path,
+                storageDestinationAdjuster
+            ),
+		    "/"
         );
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
 			bucket, path)); */

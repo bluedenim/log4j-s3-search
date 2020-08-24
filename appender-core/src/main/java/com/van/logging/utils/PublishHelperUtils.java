@@ -9,26 +9,27 @@ import com.van.logging.IStorageDestinationAdjuster;
 public class PublishHelperUtils {
 
     /**
-     * Adjust the path for storage upload if necessary. If the adjusted path is null, then "" will be used.
+     * Adjust the path for storage upload if necessary.
      *
-     * @param originalPath the original path to use
+     * @param originalPath the original path to use.
      * @param adjuster an optional adjuster that will provide a modification/replacement value for the path
      *
-     * @return the adjusted path (may be equal to originalPath)
+     * @return the adjusted path (may be equal to originalPath).
+     *
+     * Note that if the adjuster returned null, then the original path is returned
+     *
+     * Lastly, however the result is achieved (either from the adjuster or the original path), if the value is null,
+     * then "" will be returned.
      */
     public static String adjustStoragePathIfNecessary(String originalPath, IStorageDestinationAdjuster adjuster) {
         String path = originalPath;
         if (null != adjuster) {
             String newPath = adjuster.adjustPath(path);
-            if (StringUtils.isTruthy(newPath)) {
+            if (null != newPath) {
                 path = newPath;
             }
         }
-        if (StringUtils.isTruthy(path)) {
-            if (!path.endsWith("/")) {
-                path = path + "/";
-            }
-        } else {
+        if (null == path) {
             path = "";
         }
         return path;

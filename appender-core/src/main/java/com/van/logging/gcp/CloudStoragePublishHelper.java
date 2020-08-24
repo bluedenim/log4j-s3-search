@@ -6,6 +6,7 @@ import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
 import com.van.logging.utils.PublishHelperUtils;
+import com.van.logging.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,9 +39,12 @@ public class CloudStoragePublishHelper extends AbstractFilePublishHelper {
         if (null == bucket) {
             bucket = storage.create(BucketInfo.of(bucketName));
         }
-        String path = PublishHelperUtils.adjustStoragePathIfNecessary(
-            configuration.getBlobNamePrefix(),
-            storageDestinationAdjuster
+        String path = StringUtils.addTrailingIfNeeded(
+            PublishHelperUtils.adjustStoragePathIfNecessary(
+                configuration.getBlobNamePrefix(),
+                storageDestinationAdjuster
+            ),
+            "/"
         );
         String blobName = String.format("%s%s", path, context.getCacheName());
         if (this.verbose) {
