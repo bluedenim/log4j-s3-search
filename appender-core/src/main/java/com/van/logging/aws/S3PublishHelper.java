@@ -84,7 +84,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
                 this.path,
                 storageDestinationAdjuster
             ),
-		    "/"
+            "/"
         );
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
 			bucket, path)); */

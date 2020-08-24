@@ -10,7 +10,10 @@ public class PublishHelperUtilsTest {
      */
     @Test
     public void testAdjustStoragePathIfNecessaryNull() {
-        Assert.assertEquals("", PublishHelperUtils.adjustStoragePathIfNecessary(null, null));
+        Assert.assertEquals(
+            "",
+            PublishHelperUtils.adjustStoragePathIfNecessary(null, null)
+        );
     }
 
     /**
