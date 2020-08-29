@@ -3,7 +3,10 @@ package com.van.logging.gcp;
 import com.google.cloud.WriteChannel;
 import com.google.cloud.storage.*;
 import com.van.logging.AbstractFilePublishHelper;
+import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
+import com.van.logging.utils.PublishHelperUtils;
+import com.van.logging.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,10 +19,16 @@ import java.nio.file.Files;
  */
 public class CloudStoragePublishHelper extends AbstractFilePublishHelper {
     private final CloudStorageConfiguration configuration;
+    private final IStorageDestinationAdjuster storageDestinationAdjuster;
 
-    public CloudStoragePublishHelper(CloudStorageConfiguration configuration, boolean verbose) {
+    public CloudStoragePublishHelper(
+        CloudStorageConfiguration configuration,
+        IStorageDestinationAdjuster storageDestinationAdjuster,
+        boolean verbose
+    ) {
         super(configuration.isCompressionEnabled(), verbose);
         this.configuration = configuration;
+        this.storageDestinationAdjuster = storageDestinationAdjuster;
     }
 
     @Override
@@ -30,14 +39,14 @@ public class CloudStoragePublishHelper extends AbstractFilePublishHelper {
         if (null == bucket) {
             bucket = storage.create(BucketInfo.of(bucketName));
         }
-        String prefix = "";
-        if (null != configuration.getBlobNamePrefix()) {
-            prefix = configuration.getBlobNamePrefix();
-        }
-        if (!prefix.endsWith("/")) {
-            prefix = prefix + "/";
-        }
-        String blobName = String.format("%s%s", prefix, context.getCacheName());
+        String path = StringUtils.addTrailingIfNeeded(
+            PublishHelperUtils.adjustStoragePathIfNecessary(
+                configuration.getBlobNamePrefix(),
+                storageDestinationAdjuster
+            ),
+            "/"
+        );
+        String blobName = String.format("%s%s", path, context.getCacheName());
         if (this.verbose) {
             System.out.println(String.format("Publishing %s to GCS blob (bucket=%s; blob=%s):",
                 file.getAbsolutePath(), bucketName, blobName));

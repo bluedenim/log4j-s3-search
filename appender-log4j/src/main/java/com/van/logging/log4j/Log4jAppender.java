@@ -181,10 +181,12 @@ public class Log4jAppender extends AppenderSkeleton
     }
 
     public void setS3CannedAcl(String acl) {
-        try {
-            getS3Configuration().setCannedAclFromValue(acl);
-        } catch (IllegalArgumentException ex) {
-            System.err.println(String.format("Ignoring unrecognized canned ACL value %s", acl));
+        if (StringUtils.isTruthy(acl)) {
+            try {
+                getS3Configuration().setCannedAclFromValue(acl);
+            } catch (IllegalArgumentException ex) {
+                System.err.println(String.format("Ignoring unrecognized canned ACL value %s", acl));
+            }
         }
     }
 
@@ -342,13 +344,14 @@ public class Log4jAppender extends AppenderSkeleton
 
     IBufferPublisher<Event> createCachePublisher() {
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, tags);
+        PatternedPathAdjuster pathAdjuster = new PatternedPathAdjuster();
         if (null != s3Configuration
             && StringUtils.isTruthy(s3Configuration.getBucket())
         ) {
             if (verbose) {
                 System.out.println(String.format("Registering AWS S3 publish helper -> %s", s3Configuration));
             }
-            publisher.addHelper(new S3PublishHelper(s3Configuration, verbose));
+            publisher.addHelper(new S3PublishHelper(s3Configuration, pathAdjuster, verbose));
         }
         if (null != blobConfiguration
             && StringUtils.isTruthy(blobConfiguration.getContainerName())
@@ -358,7 +361,7 @@ public class Log4jAppender extends AppenderSkeleton
                 System.out.println(
                     String.format("Registering Azure Blob Storage publish helper -> %s", blobConfiguration));
             }
-            publisher.addHelper(new BlobPublishHelper(blobConfiguration, verbose));
+            publisher.addHelper(new BlobPublishHelper(blobConfiguration, pathAdjuster, verbose));
         }
         if (null != cloudStorageConfiguration
             && StringUtils.isTruthy(cloudStorageConfiguration.getBucketName())
@@ -367,7 +370,7 @@ public class Log4jAppender extends AppenderSkeleton
                 System.out.println(
                     String.format("Registering Google Cloud Storage publish helper -> %s", cloudStorageConfiguration));
             }
-            publisher.addHelper(new CloudStoragePublishHelper(cloudStorageConfiguration, verbose));
+            publisher.addHelper(new CloudStoragePublishHelper(cloudStorageConfiguration, pathAdjuster, verbose));
         }
 
         if (null != solr) {

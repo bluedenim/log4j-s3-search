@@ -16,4 +16,22 @@ public class StringUtils {
         return (null != s && !s.trim().isEmpty());
     }
 
+    /**
+     * If the string passed in is not blank or null and did not end with the trailing value, then the trailing value
+     * will be appended to it in the returned value.
+     *
+     * @param s the string to conditionally add the trailing value to. If null, then null will be returned.
+     * @param trailing the trailing value to append. If null, then s will be returned unmodified.
+     *
+     * @return the string s with the trailing value appended as necessary.
+     */
+    public static String addTrailingIfNeeded(String s, String trailing) {
+        String value = s;
+        if ((null != s) && (null != trailing)) {
+            if (isTruthy(s) && !s.endsWith(trailing)) {
+                value = s + trailing;
+            }
+        }
+        return value;
+    }
 }

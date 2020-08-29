@@ -247,6 +247,36 @@ e.g.
 logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
 
+## Advanced Cloud Storage Configuration
+### Dynamic Path/Prefix Pattern
+Normally, static values are used for path/prefix for the cloud storage destination.
+An example is a file-path-like string: 
+
+`logs/messages/myapp/`
+
+This will cause published logs to look like:
+
+`logs/message/myall/....`
+
+However, there is a _limited support_ for template expansion (**currently only the datetime**). So it is
+possible to specify a path like:
+
+`logs/messages/%d{yyyy_MM_dd_HH_mm_ss}/myapp`
+
+The above will tell the cloud storage publishers to dynamically adjust the path/prefix
+for the destination of the blobs published using the same syntax used for `PatternLayout`.
+
+An uploaded blob with the configuration above may look like:
+
+`logs/messages/2020_08_23_22_04_34/myapp/....`
+
+Note that, in the above example, the time at which the publish was done (e.g. **2020-08-23 10:04:34 PM**)
+was dynamically injected into the path according to the pattern specified. As more logs are
+published, _each publish will have a different path/prefix_ because each of these publishes
+will be done at different times.
+
+
+
 ### Solr
 There is only one property for Solr: the REST endpoint to the core/collection:
 * **solrUrl** -- the URL to core/collection

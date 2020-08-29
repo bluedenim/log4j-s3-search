@@ -6,7 +6,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.van.logging.AbstractFilePublishHelper;
+import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
+import com.van.logging.utils.PublishHelperUtils;
 import com.van.logging.utils.StringUtils;
 import org.apache.http.entity.ContentType;
 
@@ -34,13 +36,17 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
     private final AmazonS3Client client;
     private final String bucket;
     private final String path;
-    private String key;
     private final S3Configuration.S3SSEConfiguration sseConfig;
     private final CannedAccessControlList cannedAcl;
+    private final IStorageDestinationAdjuster storageDestinationAdjuster;
 
     private volatile boolean bucketExists = false;
 
-    public S3PublishHelper(S3Configuration s3, boolean verbose) {
+    public S3PublishHelper(
+        S3Configuration s3,
+        IStorageDestinationAdjuster storageDestinationAdjuster,
+        boolean verbose
+    ) {
         super(s3.isCompressionEnabled(), verbose);
         this.client = (AmazonS3Client)buildClient(
             s3.getAccessKey(), s3.getSecretKey(), s3.getSessionToken(),
@@ -49,16 +55,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         );
 
         this.bucket = s3.getBucket().toLowerCase();
-        String path = s3.getPath();
-        if (StringUtils.isTruthy(path)) {
-            if (!path.endsWith("/")) {
-                this.path = path + "/";
-            } else {
-                this.path = path;
-            }
-        } else {
-            this.path = null;
-        }
+        this.storageDestinationAdjuster = storageDestinationAdjuster;
+        this.path = s3.getPath();
         this.sseConfig = s3.getSseConfiguration();
         this.cannedAcl = s3.getCannedAcl();
     }
@@ -81,13 +79,15 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
     @Override
     protected void publishFile(File file, PublishContext context) {
-        if (this.path != null) {
-            key = String.format("%s%s", this.path, context.getCacheName());
-        } else {
-            key = context.getCacheName();
-        }
+        String path = StringUtils.addTrailingIfNeeded(
+            PublishHelperUtils.adjustStoragePathIfNecessary(
+                this.path,
+                storageDestinationAdjuster
+            ),
+            "/"
+        );
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
-			bucket, key)); */
+			bucket, path)); */
 
         try {
             // System.out.println(String.format("Publishing content of %s to S3.", tempFile));
@@ -102,9 +102,9 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
             PutObjectRequest por;
             if (cannedAcl != null)
-                por = new PutObjectRequest(bucket, key, file).withCannedAcl(cannedAcl);
+                por = new PutObjectRequest(bucket, path, file).withCannedAcl(cannedAcl);
             else
-                por = new PutObjectRequest(bucket, key, file);
+                por = new PutObjectRequest(bucket, path, file);
             por.setMetadata(metadata);
 
             PutObjectResult result = client.putObject(por);

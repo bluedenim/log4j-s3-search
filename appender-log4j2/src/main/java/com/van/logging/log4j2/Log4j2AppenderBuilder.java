@@ -154,10 +154,12 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
-            try {
-                config.setCannedAclFromValue(s3CannedAcl);
-            } catch (IllegalArgumentException ex) {
-                System.err.println(String.format("Ignoring unrecognized canned ACL value %s", s3CannedAcl));
+            if (StringUtils.isTruthy(s3CannedAcl)) {
+                try {
+                    config.setCannedAclFromValue(s3CannedAcl);
+                } catch (IllegalArgumentException ex) {
+                    System.err.println(String.format("Ignoring unrecognized canned ACL value %s", s3CannedAcl));
+                }
             }
 
             S3Configuration.S3SSEConfiguration sseConfig = null;
@@ -226,27 +228,28 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
         String hostName = addr.getHostName();
         BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, parseTags(tags));
+        PatternedPathAdjuster pathAdjuster = new PatternedPathAdjuster();
 
         getS3ConfigIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format(
                     "Registering AWS S3 publish helper -> %s", config));
             }
-            publisher.addHelper(new S3PublishHelper(config, verbose));
+            publisher.addHelper(new S3PublishHelper(config, pathAdjuster, verbose));
         });
 
         getBlobConfigurationIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format("Registering Azure Blob Storage publish helper -> %s", config));
             }
-            publisher.addHelper(new BlobPublishHelper(config, verbose));
+            publisher.addHelper(new BlobPublishHelper(config, pathAdjuster, verbose));
         });
 
         getCloudStorageConfigurationIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format("Registering Google Cloud Storage publish helper -> %s", config));
             }
-            publisher.addHelper(new CloudStoragePublishHelper(config, verbose));
+            publisher.addHelper(new CloudStoragePublishHelper(config, pathAdjuster, verbose));
         });
 
         getSolrConfigurationIfEnabled(solrUrl).ifPresent(config -> {
