@@ -86,6 +86,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
             ),
             "/"
         );
+        String key = String.format("%s%s", path, context.getCacheName());
 		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
 			bucket, path)); */
 
@@ -102,9 +103,9 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
 
             PutObjectRequest por;
             if (cannedAcl != null)
-                por = new PutObjectRequest(bucket, path, file).withCannedAcl(cannedAcl);
+                por = new PutObjectRequest(bucket, key, file).withCannedAcl(cannedAcl);
             else
-                por = new PutObjectRequest(bucket, path, file);
+                por = new PutObjectRequest(bucket, key, file);
             por.setMetadata(metadata);
 
             PutObjectResult result = client.putObject(por);

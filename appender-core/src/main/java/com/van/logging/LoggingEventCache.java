@@ -45,7 +45,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private final IBufferMonitor<T> cacheMonitor;
     private final IBufferPublisher<T> cachePublisher;
-    private final ExecutorService executorService;
+
+    private final static AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
 
     private static volatile LoggingEventCache instance = null;
 
@@ -61,16 +62,19 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         boolean success = false;
         if (null != instance) {
             try {
-                System.out.println("LoggingEventCache: shutting down");
-                instance.executorService.shutdown();
-                boolean terminated = instance.executorService.awaitTermination(
-                    SHUTDOWN_TIMEOUT_SECS,
-                    TimeUnit.SECONDS
-                );
-                System.out.println(
-                    String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
-                );
-                success = terminated;
+                ExecutorService executorService = executorServiceRef.getAndSet(null);
+                if (null != executorService) {
+                    System.out.println("LoggingEventCache: shutting down");
+                    executorService.shutdown();
+                    boolean terminated = executorService.awaitTermination(
+                        SHUTDOWN_TIMEOUT_SECS,
+                        TimeUnit.SECONDS
+                    );
+                    System.out.println(
+                        String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
+                    );
+                    success = terminated;
+                }
             } finally {
                 instance = null;
             }
@@ -123,7 +127,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
            this.eventCount.set(0);
         }
 
-        executorService = createExecutorService();
+        executorServiceRef.set(createExecutorService());
         instance = this;
     }
 
@@ -215,10 +219,15 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 final LoggingEventCache<T> me = this;
                 // Fire off a thread to actually publish to the external stores. Publishing asynchronously will allow
                 // the main program to get back to business instead of blocking for the network and file IO.
-                executorService.submit(() -> {
-                    Thread.currentThread().setName(PUBLISH_THREAD_NAME);
-                    me.publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
-                });
+                ExecutorService executorService = executorServiceRef.get();
+                if (null != executorService) {
+                    executorService.submit(() -> {
+                        Thread.currentThread().setName(PUBLISH_THREAD_NAME);
+                        me.publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
+                    });
+                } else {
+                    throw new RejectedExecutionException("executorServiceRef has null ref.");
+                }
             }
         } catch (RejectedExecutionException ex) {
             System.err.println("ExecutorService refused submitted task. Was shutDown() called?");
