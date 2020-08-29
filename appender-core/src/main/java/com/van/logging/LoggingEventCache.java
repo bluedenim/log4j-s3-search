@@ -32,6 +32,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     // of IBufferPublisher is used for each publish operation.
     private static final int PUBLISHING_THREADS = 1;
 
+    private static final long SHUTDOWN_TIMEOUT_SECS = 10;
+
     private static final String DEFAULT_TEMP_FILE_PREFIX = "log4j-s3";
 
     private final String cacheName;
@@ -43,12 +45,49 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private final IBufferMonitor<T> cacheMonitor;
     private final IBufferPublisher<T> cachePublisher;
-    private final ExecutorService executorService;
+
+    private final static AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
+
+    private static volatile LoggingEventCache instance = null;
+
+
+    /**
+     * Shutdown and cleanup the LoggingEventCache singleton. This is useful to call when a program ends in order to
+     * release any threads.
+     *
+     * @return True if the publishing thread executor service shut down successfully, False if it timed out.
+     * @throws InterruptedException if the shutdown process was interrupted.
+     */
+    public static boolean shutDown() throws InterruptedException {
+        boolean success = false;
+        if (null != instance) {
+            try {
+                ExecutorService executorService = executorServiceRef.getAndSet(null);
+                if (null != executorService) {
+                    System.out.println("LoggingEventCache: shutting down");
+                    executorService.shutdown();
+                    boolean terminated = executorService.awaitTermination(
+                        SHUTDOWN_TIMEOUT_SECS,
+                        TimeUnit.SECONDS
+                    );
+                    System.out.println(
+                        String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
+                    );
+                    success = terminated;
+                }
+            } finally {
+                instance = null;
+            }
+        }
+        return success;
+    }
 
     /**
      * Creates an instance with the provided buffer publishing collaborator.
      * The instance will create a buffer of the capacity specified and will
      * publish a batch when collected events reach that capacity.
+     *
+     * Currently, only one instance of this class can be created per process. Think of this as a Singleton class.
      *
      * To keep memory footprint down, the cache of events collected will be
      * implemented in a temporary file instead of in memory.
@@ -60,9 +99,14 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      *                       actual publishing of collected events.
      *
      * @throws Exception if errors occurred during instantiation
+     * @throws IllegalStateException if there is already an instance of the class instantiated
      */
     public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
                              IBufferPublisher<T> cachePublisher) throws Exception {
+        if (instance != null) {
+            throw new IllegalStateException("LoggingEventCache already created. Only one per process.");
+        }
+
         if (null == cacheName) {
             this.cacheName = DEFAULT_TEMP_FILE_PREFIX;
         } else {
@@ -83,7 +127,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
            this.eventCount.set(0);
         }
 
-        executorService = createExecutorService();
+        executorServiceRef.set(createExecutorService());
+        instance = this;
     }
 
     ExecutorService createExecutorService() {
@@ -174,12 +219,18 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 final LoggingEventCache<T> me = this;
                 // Fire off a thread to actually publish to the external stores. Publishing asynchronously will allow
                 // the main program to get back to business instead of blocking for the network and file IO.
-                executorService.submit(() -> {
-                    Thread.currentThread().setName(PUBLISH_THREAD_NAME);
-                    me.publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
-                });
+                ExecutorService executorService = executorServiceRef.get();
+                if (null != executorService) {
+                    executorService.submit(() -> {
+                        Thread.currentThread().setName(PUBLISH_THREAD_NAME);
+                        me.publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
+                    });
+                } else {
+                    throw new RejectedExecutionException("executorServiceRef has null ref.");
+                }
             }
-
+        } catch (RejectedExecutionException ex) {
+            System.err.println("ExecutorService refused submitted task. Was shutDown() called?");
         } catch (Throwable t) {
             System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
             t.printStackTrace();

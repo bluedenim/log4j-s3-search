@@ -26,10 +26,13 @@ public class Log4j2Appender extends AbstractAppender {
         return new Log4j2AppenderBuilder();
     }
 
-    Log4j2Appender(String name,
-                   Filter filter,
-                   Layout<? extends Serializable> layout,
-                   boolean ignoreExceptions, LoggingEventCache<Event> eventCache) {
+    Log4j2Appender(
+        String name,
+       Filter filter,
+       Layout<? extends Serializable> layout,
+       boolean ignoreExceptions,
+       LoggingEventCache<Event> eventCache
+    ) {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
         this.eventCache = eventCache;
