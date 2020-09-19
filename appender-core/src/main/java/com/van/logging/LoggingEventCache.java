@@ -75,6 +75,10 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                     );
                     success = terminated;
                 }
+
+                if (null != instance.cacheMonitor){
+                    instance.cacheMonitor.shutDown();
+                }
             } finally {
                 instance = null;
             }

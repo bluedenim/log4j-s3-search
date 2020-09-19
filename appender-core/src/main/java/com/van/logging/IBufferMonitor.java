@@ -14,4 +14,9 @@ public interface IBufferMonitor<T> {
      * @param flushAndPublisher the {@link IFlushAndPublish} to use to publish.
      */
     void eventAdded(final T event, final IFlushAndPublish flushAndPublisher);
+
+    /**
+     * Shut down the monitor and clean up
+     */
+    void shutDown();
 }

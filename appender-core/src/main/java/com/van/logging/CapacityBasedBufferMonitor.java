@@ -42,6 +42,11 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
     }
 
     @Override
+    public void shutDown() {
+        System.out.println("CapacityBasedBufferMonitor: shutting down.");
+    }
+
+    @Override
     public String toString() {
         return String.format("CapacityBasedBufferMonitor(cacheLimit: %d)", cacheLimit);
     }
