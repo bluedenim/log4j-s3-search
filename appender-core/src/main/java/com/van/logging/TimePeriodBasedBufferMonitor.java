@@ -56,6 +56,7 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
                     @Override
                     public void run() {
                         long started = System.currentTimeMillis();
+                        Thread.currentThread().setName("TimePeriodBasedBufferMonitor-publish-trigger");
                         try {
                             publisher.flushAndPublish();
                         } catch (Exception ex) {
@@ -63,9 +64,9 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
                         } finally {
                             long now = System.currentTimeMillis();
                             if (now - started > (periodInSeconds * 9 / 10)) {
-                                //System.out.println(
-                                //    "Publish operation is approaching monitor period. Increase " +
-                                //    "period or risk compromising fixed rate.");
+                                System.err.println(
+                                    "Publish operation is approaching monitor period. Increase " +
+                                    "period or risk compromising fixed rate.");
                             }
                         }
                     }
@@ -73,6 +74,12 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
                 0L,
                 tuple.amount, tuple.timeUnit);
         }
+    }
+
+    @Override
+    public void shutDown() {
+        System.out.println("TimePeriodBasedBufferMonitor: shutting down.");
+        this.scheduledExecutorService.shutdownNow();
     }
 
     @Override
