@@ -1,6 +1,7 @@
 package com.van.logging;
 
 import java.io.*;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,7 +49,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private final AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
 
-    private static final ConcurrentLinkedDeque<LoggingEventCache> instances = new ConcurrentLinkedDeque<>();
+    private static final Queue<LoggingEventCache> instances = new ConcurrentLinkedQueue<>();
 
 
     /**
@@ -60,30 +61,28 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      */
     public static boolean shutDown() throws InterruptedException {
         boolean success = true;
-        try {
-            for (LoggingEventCache instance: instances) {
-                ExecutorService executorService =
-                    (ExecutorService)instance.executorServiceRef.getAndSet(null);
-                if (null != executorService) {
-                    System.out.println(
-                        String.format("LoggingEventCache %s: shutting down", instance));
-                    executorService.shutdown();
-                    boolean terminated = executorService.awaitTermination(
-                        SHUTDOWN_TIMEOUT_SECS,
-                        TimeUnit.SECONDS
-                    );
-                    System.out.println(
-                        String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
-                    );
-                    success = success & terminated;
-                }
-
-                if (null != instance.cacheMonitor) {
-                    instance.cacheMonitor.shutDown();
-                }
+        LoggingEventCache instance = instances.poll();
+        while (null != instance) {
+            ExecutorService executorService =
+                (ExecutorService) instance.executorServiceRef.getAndSet(null);
+            if (null != executorService) {
+                System.out.println(
+                    String.format("LoggingEventCache %s: shutting down", instance));
+                executorService.shutdown();
+                boolean terminated = executorService.awaitTermination(
+                    SHUTDOWN_TIMEOUT_SECS,
+                    TimeUnit.SECONDS
+                );
+                System.out.println(
+                    String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
+                );
+                success = success & terminated;
             }
-        } finally {
-            instances.clear();
+
+            if (null != instance.cacheMonitor) {
+                instance.cacheMonitor.shutDown();
+            }
+            instance = instances.poll();
         }
         return success;
     }
