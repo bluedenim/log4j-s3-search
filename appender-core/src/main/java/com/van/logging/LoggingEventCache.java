@@ -46,9 +46,9 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     private final IBufferMonitor<T> cacheMonitor;
     private final IBufferPublisher<T> cachePublisher;
 
-    private final static AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
+    private final AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
 
-    private static volatile LoggingEventCache instance = null;
+    private static final ConcurrentLinkedDeque<LoggingEventCache> instances = new ConcurrentLinkedDeque<>();
 
 
     /**
@@ -59,12 +59,14 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      * @throws InterruptedException if the shutdown process was interrupted.
      */
     public static boolean shutDown() throws InterruptedException {
-        boolean success = false;
-        if (null != instance) {
-            try {
-                ExecutorService executorService = executorServiceRef.getAndSet(null);
+        boolean success = true;
+        try {
+            for (LoggingEventCache instance: instances) {
+                ExecutorService executorService =
+                    (ExecutorService)instance.executorServiceRef.getAndSet(null);
                 if (null != executorService) {
-                    System.out.println("LoggingEventCache: shutting down");
+                    System.out.println(
+                        String.format("LoggingEventCache %s: shutting down", instance));
                     executorService.shutdown();
                     boolean terminated = executorService.awaitTermination(
                         SHUTDOWN_TIMEOUT_SECS,
@@ -73,15 +75,15 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                     System.out.println(
                         String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
                     );
-                    success = terminated;
+                    success = success & terminated;
                 }
 
-                if (null != instance.cacheMonitor){
+                if (null != instance.cacheMonitor) {
                     instance.cacheMonitor.shutDown();
                 }
-            } finally {
-                instance = null;
             }
+        } finally {
+            instances.clear();
         }
         return success;
     }
@@ -107,10 +109,6 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      */
     public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
                              IBufferPublisher<T> cachePublisher) throws Exception {
-        if (instance != null) {
-            throw new IllegalStateException("LoggingEventCache already created. Only one per process.");
-        }
-
         if (null == cacheName) {
             this.cacheName = DEFAULT_TEMP_FILE_PREFIX;
         } else {
@@ -132,7 +130,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         }
 
         executorServiceRef.set(createExecutorService());
-        instance = this;
+        instances.add(this);
     }
 
     ExecutorService createExecutorService() {
