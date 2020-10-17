@@ -1,6 +1,7 @@
 package com.van.logging;
 
 import java.io.*;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,7 +49,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private final AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
 
-    private static final ConcurrentLinkedDeque<LoggingEventCache> instances = new ConcurrentLinkedDeque<>();
+    private static final Queue<LoggingEventCache> instances = new ConcurrentLinkedQueue<>();
 
 
     /**
@@ -60,10 +61,11 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      */
     public static boolean shutDown() throws InterruptedException {
         boolean success = true;
-        try {
-            for (LoggingEventCache instance: instances) {
+        LoggingEventCache instance = instances.poll();
+        while (null != instance) {
+            try {
                 ExecutorService executorService =
-                    (ExecutorService)instance.executorServiceRef.getAndSet(null);
+                    (ExecutorService) instance.executorServiceRef.getAndSet(null);
                 if (null != executorService) {
                     System.out.println(
                         String.format("LoggingEventCache %s: shutting down", instance));
@@ -81,9 +83,11 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 if (null != instance.cacheMonitor) {
                     instance.cacheMonitor.shutDown();
                 }
+            } catch (Exception ex) {
+                System.err.println(String.format("LoggingEventCache: error shutting down %s\n", instance));
+            } finally {
+                instance = instances.poll();
             }
-        } finally {
-            instances.clear();
         }
         return success;
     }
