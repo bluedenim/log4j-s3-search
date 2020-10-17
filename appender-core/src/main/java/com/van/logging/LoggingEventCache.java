@@ -63,26 +63,31 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         boolean success = true;
         LoggingEventCache instance = instances.poll();
         while (null != instance) {
-            ExecutorService executorService =
-                (ExecutorService) instance.executorServiceRef.getAndSet(null);
-            if (null != executorService) {
-                System.out.println(
-                    String.format("LoggingEventCache %s: shutting down", instance));
-                executorService.shutdown();
-                boolean terminated = executorService.awaitTermination(
-                    SHUTDOWN_TIMEOUT_SECS,
-                    TimeUnit.SECONDS
-                );
-                System.out.println(
-                    String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
-                );
-                success = success & terminated;
-            }
+            try {
+                ExecutorService executorService =
+                    (ExecutorService) instance.executorServiceRef.getAndSet(null);
+                if (null != executorService) {
+                    System.out.println(
+                        String.format("LoggingEventCache %s: shutting down", instance));
+                    executorService.shutdown();
+                    boolean terminated = executorService.awaitTermination(
+                        SHUTDOWN_TIMEOUT_SECS,
+                        TimeUnit.SECONDS
+                    );
+                    System.out.println(
+                        String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
+                    );
+                    success = success & terminated;
+                }
 
-            if (null != instance.cacheMonitor) {
-                instance.cacheMonitor.shutDown();
+                if (null != instance.cacheMonitor) {
+                    instance.cacheMonitor.shutDown();
+                }
+            } catch (Exception ex) {
+                System.err.println(String.format("LoggingEventCache: error shutting down %s\n", instance));
+            } finally {
+                instance = instances.poll();
             }
-            instance = instances.poll();
         }
         return success;
     }
