@@ -52,4 +52,22 @@ public class LoggingEventCacheTest {
             Assert.fail("Failing on error");
         }
     }
+
+    @Test
+    public void testShutdownMultipleCaches() {
+        final TestMonitor monitor = new TestMonitor();
+        final TestMonitor monitor2 = new TestMonitor();
+        try {
+            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub());
+            LoggingEventCache<String> inst2 = new LoggingEventCache<>(CACHE_NAME, monitor2, new PublisherStub());
+
+            LoggingEventCache.shutDown();
+
+            Assert.assertTrue("Monitor is shut down when LoggingEventCache is shut down", monitor.isShutdown);
+            Assert.assertTrue("Monitor2 is shut down when LoggingEventCache is shut down", monitor2.isShutdown);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail("Failing on error");
+        }
+    }
 }
