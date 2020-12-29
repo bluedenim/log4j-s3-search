@@ -28,6 +28,7 @@ public class AwsClientHelpersTest {
     Region region;
     String serviceEndpoint;
     String signingRegion;
+    boolean pathStyleAccess;
 
     @Before
     public void setUp() {
@@ -54,7 +55,7 @@ public class AwsClientHelpersTest {
         try {
             AmazonS3 client = AwsClientHelpers.buildClient(
                 accessKey, secretKey, null, region,
-                null, null
+                null, null, false
             );
             assertEquals(mockedClient, client);
 
@@ -86,7 +87,7 @@ public class AwsClientHelpersTest {
         try {
             AmazonS3 client = AwsClientHelpers.buildClient(
                 accessKey, secretKey, null, null,
-                serviceEndpoint, signingRegion
+                serviceEndpoint, signingRegion,false
             );
             assertEquals(mockedClient, client);
 
@@ -99,7 +100,7 @@ public class AwsClientHelpersTest {
             fail("Unexpected exception: " + ex.getMessage());
         }
     }
-
+    
     @Test
     public void testGetCredentialsProvider() {
         AWSCredentialsProvider accessProvider = AwsClientHelpers.getCredentialsProvider(

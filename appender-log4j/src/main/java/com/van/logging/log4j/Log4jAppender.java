@@ -142,6 +142,12 @@ public class Log4jAppender extends AppenderSkeleton
         getS3Configuration().setBucket(bucket);
     }
 
+    public void setPathStyleAccess(boolean pathStyleAccess)
+    {
+    	System.out.println("Setting pathStyleAccess"+pathStyleAccess);
+    	getS3Configuration().setPathStyleAccess(pathStyleAccess);
+    }
+    
     public void setS3Region(String region) {
         getS3Configuration().setRegion(region);
     }
@@ -150,6 +156,7 @@ public class Log4jAppender extends AppenderSkeleton
         getS3Configuration().setPath(path);
     }
 
+    
     public void setS3AwsKey(String accessKey) {
         getS3Configuration().setAccessKey(accessKey);
     }

@@ -41,6 +41,11 @@ public class AwsClientHelpers {
     static AwsClientBuilder getS3ClientBuilder() {
         return AmazonS3ClientBuilder.standard();
     }
+    
+    static AwsClientBuilder getS3ClientBuilderwithEnablePathStyleAccess() {
+        return AmazonS3ClientBuilder.standard().enablePathStyleAccess();
+    }
+    
 
     /**
      * Creates an AmazonS3Client using the optional configuration information provided. If accessKey and
@@ -63,11 +68,19 @@ public class AwsClientHelpers {
     public static AmazonS3 buildClient(
         String accessKey, String secretKey, String sessionToken,
         Region region,
-        String serviceEndpoint, String signingRegion
+        String serviceEndpoint, String signingRegion, boolean pathStyleAccess
     ) {
         AWSCredentialsProvider credentialsProvider =
             getCredentialsProvider(accessKey, secretKey, sessionToken);
-        AwsClientBuilder builder = getS3ClientBuilder();
+        AwsClientBuilder builder = null;
+        if (pathStyleAccess){
+        	if (builder == null)
+        		builder = getS3ClientBuilderwithEnablePathStyleAccess();
+        }else
+        {
+        	if (builder == null)
+        		builder=getS3ClientBuilder();
+        }
         builder = builder.withCredentials(credentialsProvider);
         if (region != null) {
             builder = builder.withRegion(region.getName());

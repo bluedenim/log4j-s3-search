@@ -1,6 +1,25 @@
 package com.van.logging.log4j2;
 
-import com.van.logging.*;
+import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
+import org.apache.logging.log4j.core.filter.AbstractFilter;
+
+import com.van.logging.BufferPublisher;
+import com.van.logging.CapacityBasedBufferMonitor;
+import com.van.logging.Event;
+import com.van.logging.IBufferMonitor;
+import com.van.logging.IBufferPublisher;
+import com.van.logging.LoggingEventCache;
+import com.van.logging.TimePeriodBasedBufferMonitor;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
 import com.van.logging.azure.BlobConfiguration;
@@ -12,14 +31,6 @@ import com.van.logging.gcp.CloudStoragePublishHelper;
 import com.van.logging.solr.SolrConfiguration;
 import com.van.logging.solr.SolrPublishHelper;
 import com.van.logging.utils.StringUtils;
-import org.apache.logging.log4j.core.LogEvent;
-import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
-import org.apache.logging.log4j.core.filter.AbstractFilter;
-
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder
     implements org.apache.logging.log4j.core.util.Builder<Log4j2Appender> {
@@ -70,6 +81,9 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
 
     @PluginBuilderAttribute
     private String s3CannedAcl;
+    
+    @PluginBuilderAttribute
+    private boolean pathStyleAccess;
 
     // Azure blob properties
     @PluginBuilderAttribute
@@ -154,6 +168,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
+            config.setPathStyleAccess(pathStyleAccess);
             if (StringUtils.isTruthy(s3CannedAcl)) {
                 try {
                     config.setCannedAclFromValue(s3CannedAcl);
