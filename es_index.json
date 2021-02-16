@@ -1,0 +1,37 @@
+{
+  "mappings":{
+    "properties":{
+      "hostname":{
+        "type":"text",
+        "index" : "true"
+      },
+      "logger":{
+        "type":"text",
+        "index" : "true"
+      },
+      "message":{
+        "type":"text",
+        "index" : "true",
+        "analyzer" : "english"
+      },
+      "offset":{
+        "type":"long"
+      },
+      "tags":{
+        "type":"text",
+        "index" : "true"
+      },
+      "thread_name":{
+        "type":"text",
+        "index" : "true"
+      },
+      "timestamp":{
+        "type":"date"
+      },
+      "type":{
+        "type":"text",
+        "index" : "true"
+      }
+    }
+  }
+}

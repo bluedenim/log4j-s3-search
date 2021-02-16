@@ -15,7 +15,10 @@ public class ElasticsearchConfiguration {
 
     private static final String DEFAULT_CLUSTERNAME = "elasticsearch";
     private static final String DEFAULT_INDEX = "logindex";
-    private static final String DEFAULT_TYPE = "log";
+
+    // NOTE: "_doc" now the only supported type (before they get rid of type altogether), but this is here for
+    // backwards compatibility. See https://www.elastic.co/blog/removal-of-mapping-types-elasticsearch
+    private static final String DEFAULT_TYPE = "_doc";
 
 
     private String clusterName = DEFAULT_CLUSTERNAME;

@@ -8,6 +8,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +45,7 @@ public class AwsClientHelpersTest {
          *  Tests that the region is set on the client builder before the client is built.
          */
         AmazonS3 mockedClient = PowerMock.createMock(AmazonS3.class);
-        AwsClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AwsClientBuilder.class);
+        AmazonS3ClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AmazonS3ClientBuilder.class);
         PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
         EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withRegion(region.getName())).andReturn(mockedS3ClientBuilder);
@@ -74,7 +75,7 @@ public class AwsClientHelpersTest {
          *  Tests that the service endpoint and signing region are set on the client builder before the client is built.
          */
         AmazonS3 mockedClient = PowerMock.createMock(AmazonS3.class);
-        AwsClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AwsClientBuilder.class);
+        AmazonS3ClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AmazonS3ClientBuilder.class);
         PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
         EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withEndpointConfiguration(

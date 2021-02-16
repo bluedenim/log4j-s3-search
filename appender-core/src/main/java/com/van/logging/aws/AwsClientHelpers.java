@@ -38,7 +38,7 @@ public class AwsClientHelpers {
         return credProvider;
     }
 
-    static AwsClientBuilder getS3ClientBuilder() {
+    static AmazonS3ClientBuilder getS3ClientBuilder() {
         return AmazonS3ClientBuilder.standard();
     }
 
@@ -67,7 +67,7 @@ public class AwsClientHelpers {
     ) {
         AWSCredentialsProvider credentialsProvider =
             getCredentialsProvider(accessKey, secretKey, sessionToken);
-        AwsClientBuilder builder = getS3ClientBuilder();
+        AmazonS3ClientBuilder builder = getS3ClientBuilder();
         builder = builder.withCredentials(credentialsProvider);
         if (region != null) {
             builder = builder.withRegion(region.getName());
@@ -82,6 +82,6 @@ public class AwsClientHelpers {
                 new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, signingRegion)
             );
         }
-        return (AmazonS3) builder.build();
+        return builder.build();
     }
 }
