@@ -15,7 +15,9 @@ public class ElasticsearchConfiguration {
 
     private static final String DEFAULT_CLUSTERNAME = "elasticsearch";
     private static final String DEFAULT_INDEX = "logindex";
-    private static final String DEFAULT_TYPE = "log";
+
+    // Elasticsearch is desperately trying to get rid of type, but this is here just in case.
+    private static final String DEFAULT_TYPE = "_doc";
 
 
     private String clusterName = DEFAULT_CLUSTERNAME;

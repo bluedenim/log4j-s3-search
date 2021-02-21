@@ -211,13 +211,23 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
         return Optional.ofNullable(config);
     }
 
-    static Optional<ElasticsearchConfiguration> getElasticsearchConfigIfEnabled(String elasticsearchHosts) {
+    Optional<ElasticsearchConfiguration> getElasticsearchConfigIfEnabled() {
         ElasticsearchConfiguration config = null;
-        if (null != elasticsearchHosts) {
+        // Assumption: the search hosts is required whereas others can have defaults
+        if (StringUtils.isTruthy(this.elasticsearchHosts)) {
             config = new ElasticsearchConfiguration();
-            String hostArray[] = elasticsearchHosts.split("[;\\s,]");
+            String[] hostArray = this.elasticsearchHosts.split("[;\\s,]");
             for (String entry: hostArray) {
                 config.addHost(entry);
+            }
+            if (StringUtils.isTruthy(this.elasticsearchCluster)) {
+                config.setClusterName(this.elasticsearchCluster.trim());
+            }
+            if (StringUtils.isTruthy(this.elasticsearchIndex)) {
+                config.setIndex(this.elasticsearchIndex.trim());
+            }
+            if (StringUtils.isTruthy(this.elasticsearchType)) {
+                config.setType(this.elasticsearchType.trim());
             }
         }
         return Optional.ofNullable(config);
@@ -260,7 +270,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             publisher.addHelper(new SolrPublishHelper(config.getUrl()));
         });
 
-        getElasticsearchConfigIfEnabled(elasticsearchHosts).ifPresent(config -> {
+        getElasticsearchConfigIfEnabled().ifPresent(config -> {
             if (verbose) {
                 System.out.println(String.format(
                     "Registering Elasticsearch publish helper -> %s", config));
