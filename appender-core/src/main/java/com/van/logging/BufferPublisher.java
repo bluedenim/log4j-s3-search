@@ -65,6 +65,7 @@ public class BufferPublisher<T> implements IBufferPublisher<T> {
             try {
                 helper.end(context);
             } catch (Throwable t) {
+                t.printStackTrace(System.err);
                 System.err.println(String.format("Cannot end publish with %s due to error: %s",
                     helper, t.getMessage()));
             }

@@ -2,17 +2,19 @@ package com.van.logging.elasticsearch;
 
 import com.van.logging.IPublishHelper;
 import com.van.logging.PublishContext;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.*;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import com.van.logging.Event;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-import java.net.InetAddress;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -24,40 +26,47 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
 
     private final ElasticsearchConfiguration configuration;
 
-    private TransportClient transport;
-    private BulkRequestBuilder builder;
+    private final List<Node> nodes = new ArrayList<>();
+    private RestHighLevelClient client;
+    private BulkRequest bulkRequest;
     private int offset;
     private Date timeStamp;
 
     public ElasticsearchPublishHelper(ElasticsearchConfiguration configuration) {
         this.configuration = configuration;
+        this.configuration.iterateHosts((host, port) -> {
+            nodes.add(createNodeFromHost(host, port));
+        });
     }
 
-    private TransportClient getTransportClient(ElasticsearchConfiguration config) {
-        Settings settings = Settings.builder()
-            .put("cluster.name", config.getClusterName())
-            .build();
-        final PreBuiltTransportClient client = new PreBuiltTransportClient(settings);
-        config.iterateHosts((host, port) -> {
-            try {
-                client.addTransportAddress(
-                    new InetSocketTransportAddress(InetAddress.getByName(host), port)
-                );
-            } catch (Exception e) {
-                System.err.println(String.format(
-                    "Cannot add Elasticsearch host %s(%d): %s",
-                    host, port, e.getMessage()));
+    Node createNodeFromHost(String host, int port) {
+        String scheme = null;
+        String hostName = host.toLowerCase().trim();
+        if (hostName.startsWith("http:") || hostName.startsWith("https:")) {
+            String[] schemeAndHostname = hostName.split(":");
+            if (schemeAndHostname.length >= 2) {
+                scheme = schemeAndHostname[0];
+                hostName = schemeAndHostname[1];
             }
-        });
-        return client;
+        }
+        return new Node(new HttpHost(hostName, port, scheme));
     }
 
     @Override
     public void start(PublishContext context) {
         offset = 0;
         timeStamp = new Date();
-        transport = getTransportClient(this.configuration);
-        builder = transport.prepareBulk();
+
+        try {
+            Method getBuilder = RestClient.class.getDeclaredMethod("builder", Node[].class);
+            getBuilder.setAccessible(true);
+            RestClientBuilder builder =
+                (RestClientBuilder)getBuilder.invoke(null, new Object[]{nodes.toArray(new Node[0])});
+            client = new RestHighLevelClient(builder);
+            bulkRequest = new BulkRequest();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -76,27 +85,33 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
                 .field("message", event.getMessage())
                 .array("tags", context.getTags())
                 .endObject();
-            builder.add(transport.prepareIndex(configuration.getIndex(), configuration.getType(), id)
-                .setSource(contentBuilder));
+            bulkRequest.add(new IndexRequest(configuration.getIndex()).id(id).source(contentBuilder));
             offset++;
         } catch (Exception ex) {
-            System.err.println(String.format("Cannot publish event: %s", ex.getMessage()));
+            System.err.printf("Cannot publish event: %s%n", ex.getMessage());
         }
     }
 
     @Override
     public void end(PublishContext context) {
         try {
-            if (null != builder) {
-                BulkResponse response = builder.get();
+            if ((null != client) && (null != bulkRequest)) {
+                BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
                 if (response.hasFailures()) {
                     System.err.println("Elasticsearch publish failures: " + response.buildFailureMessage());
                 }
             }
+        } catch (IOException ex) {
+            ex.printStackTrace();
         } finally {
-            builder = null;
-            transport.close();
-            transport = null;
+            try {
+                if (null != client) {
+                    client.close();
+                }
+                bulkRequest = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
