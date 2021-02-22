@@ -22,6 +22,13 @@ The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should
 for all Java versions 8+; you can just either download the JARs or add the appropriate dependency
 stanzas into your build configuration.
 
+To build locally:
+
+Release / tag|JSDK version
+-----------|------------
+2.x and earlier|[Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
+3.x|[Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
+
 [Java SDK (JDK) 8](https://docs.oracle.com/javase/8/) is required **ONLY for cases when you want to build the projects
 locally**. 
 
