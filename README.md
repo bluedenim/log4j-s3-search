@@ -32,17 +32,21 @@ really need to build with the newer JDKs.
 ## Packages
 The project is broken up into several packages:
 
-* **appender-core** -- Log4j version-agnostic logic that deals with maintaining the log staging buffer and publishing to external stores.
-* **appender-log4j** -- Log4j 1.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 1.x.
-* **appender-log4j2** -- Log4j 2.x binding code that, together with **appender-core**, will allow client code to use the project with Log4j 2.x.
+* **appender-core** -- Log4j version-agnostic logic that deals with maintaining the log staging buffer and 
+  publishing to external stores. *However, you typically do not need to explicitly depend on this since one of the
+  following will.*
+* **appender-log4j** -- **Log4j 1.x** binding code that, together with **appender-core**, will allow client code 
+  to use the project with Log4j 1.x.
+* **appender-log4j2** -- **Log4j 2.x** binding code that, together with **appender-core**, will allow client code 
+  to use the project with Log4j 2.x.
 
 
 ## Usage
 * Find out which version of Log4j your client program is using.
-  * If you're using **Log4j 1.x**, you should add **appender-core** and **appender-log4j** as dependencies. 
+  * If you're using **Log4j 1.x**, you should add **appender-log4j** into your dependencies. 
   (See **appender-log4j-sample** from [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) 
   for an example of how it's done.)
-  * If you're using **Log4j 2.x**, you should add **appender-core** and **appender-log4j2** as dependencies. 
+  * If you're using **Log4j 2.x**, you should add **appender-log4j2** into your dependencies. 
   (See **appender-log4j2-sample** from [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) 
   for an example of how it's done.)
 
@@ -55,13 +59,8 @@ Please **substitute in the latest version** in your case (so I don't have to kee
 ```
 <dependency>
     <groupId>com.therealvan</groupId>
-    <artifactId>appender-core</artifactId>
-    <version>2.3.1</version>
-</dependency>
-<dependency>
-    <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j</artifactId>
-    <version>2.3.1</version>
+    <version>...</version>
 </dependency>
 ```
 
@@ -69,13 +68,8 @@ Similarly, when coding with Log4j 2.x:
 ```
 <dependency>
     <groupId>com.therealvan</groupId>
-    <artifactId>appender-core</artifactId>
-    <version>2.3.1</version>
-</dependency>
-<dependency>
-    <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j2</artifactId>
-    <version>2.3.1</version>
+    <version>...</version>
 </dependency>
 ```
 
