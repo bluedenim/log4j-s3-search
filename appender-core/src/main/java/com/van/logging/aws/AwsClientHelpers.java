@@ -38,7 +38,7 @@ public class AwsClientHelpers {
         return credProvider;
     }
 
-    static AwsClientBuilder getS3ClientBuilder() {
+    static AmazonS3ClientBuilder getS3ClientBuilder() {
         return AmazonS3ClientBuilder.standard();
     }
 
@@ -57,18 +57,22 @@ public class AwsClientHelpers {
      * @param region optional region to use.
      * @param serviceEndpoint optional service endpoint to use when initializing the S3 Client.
      * @param signingRegion optional signing region to use when initializing the S3 Client.
+     * @param pathStyleAccess optional boolean indicating if path style URL should be used
      *
      * @return the client class to use for S3 access.
      */
     public static AmazonS3 buildClient(
         String accessKey, String secretKey, String sessionToken,
         Region region,
-        String serviceEndpoint, String signingRegion
+        String serviceEndpoint, String signingRegion, boolean pathStyleAccess
     ) {
         AWSCredentialsProvider credentialsProvider =
             getCredentialsProvider(accessKey, secretKey, sessionToken);
-        AwsClientBuilder builder = getS3ClientBuilder();
+        AmazonS3ClientBuilder builder = getS3ClientBuilder();
         builder = builder.withCredentials(credentialsProvider);
+        if (pathStyleAccess) {
+            builder = builder.withPathStyleAccessEnabled(true);
+        }
         if (region != null) {
             builder = builder.withRegion(region.getName());
         }
