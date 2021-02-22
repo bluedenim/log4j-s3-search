@@ -51,7 +51,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         this.client = (AmazonS3Client)buildClient(
             s3.getAccessKey(), s3.getSecretKey(), s3.getSessionToken(),
             s3.getRegion(),
-            s3.getServiceEndpoint(), s3.getSigningRegion()
+            s3.getServiceEndpoint(), s3.getSigningRegion(),
+            s3.isPathStyleAccess()
         );
 
         this.bucket = s3.getBucket().toLowerCase();

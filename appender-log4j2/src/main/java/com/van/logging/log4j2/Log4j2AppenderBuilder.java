@@ -71,6 +71,9 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     @PluginBuilderAttribute
     private String s3CannedAcl;
 
+    @PluginBuilderAttribute
+    private boolean s3PathStyleAccess;
+
     // Azure blob properties
     @PluginBuilderAttribute
     private String azureStorageConnectionString;
@@ -154,6 +157,7 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
             config.setSessionToken(s3AwsSessionToken);
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
+            config.setPathStyleAccess(s3PathStyleAccess);
             if (StringUtils.isTruthy(s3CannedAcl)) {
                 try {
                     config.setCannedAclFromValue(s3CannedAcl);
