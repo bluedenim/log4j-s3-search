@@ -22,8 +22,12 @@ The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should
 for all Java versions 11+ (I've finally gotten out of JSDK 8); you can just either download the JARs or add 
 the appropriate dependency stanzas into your build configuration.
 
-[Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) is required
-**ONLY for cases when you want to build the projects locally**. 
+To build locally:
+
+Release / tag|JSDK version
+-----------|------------
+2.x and earlier|[Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
+3.x|[Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
 
 Note that using [Java SDK (JDK) 14](https://docs.oracle.com/en/java/javase/14/) to build the projects locally will
 have errors. You can try basing your work on [PR 59](https://github.com/bluedenim/log4j-s3-search/pull/59) if you
