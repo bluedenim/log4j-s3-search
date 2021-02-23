@@ -18,18 +18,20 @@ is not configuration for Apache Solr, the appender will not attempt to publish t
 
 ## Prerequisites
 
-The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should work as long as you're on the 
-correct Java version (see below).
+The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should work
+for all Java versions 11+ (I've finally gotten out of JSDK 8); you can just either download the JARs or add 
+the appropriate dependency stanzas into your build configuration.
 
+To build locally:
 
 Release / tag|JSDK version
 -----------|------------
 2.x and earlier|[Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
 3.x|[Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
 
-Note that if you use [Java SDK (JDK) 14](https://docs.oracle.com/en/java/javase/14/) to build the projects locally,
-you will have errors. You can try basing your work on [PR 59](https://github.com/bluedenim/log4j-s3-search/pull/59) if
-you really need to build with the newer JDKs.
+Note that using [Java SDK (JDK) 14](https://docs.oracle.com/en/java/javase/14/) to build the projects locally will
+have errors. You can try basing your work on [PR 59](https://github.com/bluedenim/log4j-s3-search/pull/59) if you
+really need to build with the newer JDKs.
 
 ## Packages
 The project is broken up into several packages:
