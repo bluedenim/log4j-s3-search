@@ -67,8 +67,8 @@
             </dependency>
             <dependency>
                 <groupId>org.elasticsearch.client</groupId>
-                <artifactId>transport</artifactId>
-                <version>5.6.16</version>
+                <artifactId>elasticsearch-rest-high-level-client</artifactId>
+                <version>7.11.1</version>
             </dependency>
 
         </dependencies>
