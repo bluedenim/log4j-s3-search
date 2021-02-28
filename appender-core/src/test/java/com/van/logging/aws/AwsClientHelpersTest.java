@@ -50,6 +50,7 @@ public class AwsClientHelpersTest {
         PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
         EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withCredentials(anyObject())).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withPathStyleAccessEnabled(false)).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withRegion(region.getName())).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.build()).andReturn(mockedClient);
         PowerMock.replayAll();
@@ -82,6 +83,7 @@ public class AwsClientHelpersTest {
         PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
         EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withCredentials(anyObject())).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withPathStyleAccessEnabled(false)).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withEndpointConfiguration(
             anyObject(AwsClientBuilder.EndpointConfiguration.class
         ))).andReturn(mockedS3ClientBuilder);

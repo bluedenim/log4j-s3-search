@@ -68,11 +68,9 @@ public class AwsClientHelpers {
     ) {
         AWSCredentialsProvider credentialsProvider =
             getCredentialsProvider(accessKey, secretKey, sessionToken);
-        AmazonS3ClientBuilder builder = getS3ClientBuilder();
-        builder = builder.withCredentials(credentialsProvider);
-        if (pathStyleAccess) {
-            builder = builder.withPathStyleAccessEnabled(true);
-        }
+        AmazonS3ClientBuilder builder = getS3ClientBuilder()
+            .withCredentials(credentialsProvider)
+            .withPathStyleAccessEnabled(pathStyleAccess);
         if (region != null) {
             builder = builder.withRegion(region.getName());
         }
