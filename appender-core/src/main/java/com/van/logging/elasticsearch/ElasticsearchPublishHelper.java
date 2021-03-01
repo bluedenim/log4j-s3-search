@@ -2,6 +2,7 @@ package com.van.logging.elasticsearch;
 
 import com.van.logging.IPublishHelper;
 import com.van.logging.PublishContext;
+import com.van.logging.utils.StringUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -11,6 +12,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import com.van.logging.Event;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
@@ -118,5 +120,30 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static ElasticsearchPublishHelper getPublishHelper(
+        String publishHelperNameSpec, ElasticsearchConfiguration elasticsearchConfiguration, ClassLoader classLoader) {
+        ElasticsearchPublishHelper helper = null;
+        if (StringUtils.isTruthy(publishHelperNameSpec)) {
+            System.out.printf("Attempting to instantiate %s%n", publishHelperNameSpec);
+            try {
+                Class<ElasticsearchPublishHelper> cls;
+                cls = (Class<ElasticsearchPublishHelper>)classLoader.loadClass(
+                    publishHelperNameSpec
+                );
+                Constructor<ElasticsearchPublishHelper> ctor = cls.getConstructor(ElasticsearchConfiguration.class);
+                helper = ctor.newInstance(elasticsearchConfiguration);
+                System.out.printf("Successfully registered %s as Elasticsearch publish helper%n", publishHelperNameSpec);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        if (null == helper) {
+            System.out.printf("Instantiating the default ElasticsearchPublishHelper%n");
+            helper = new ElasticsearchPublishHelper(elasticsearchConfiguration);
+        }
+        return helper;
     }
 }

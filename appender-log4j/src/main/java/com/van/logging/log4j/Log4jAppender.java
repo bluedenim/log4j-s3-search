@@ -95,6 +95,7 @@ public class Log4jAppender extends AppenderSkeleton
     private CloudStorageConfiguration cloudStorageConfiguration;
     private SolrConfiguration solr;
     private ElasticsearchConfiguration elasticsearchConfiguration;
+    private String elasticsearchHelperClassName;
 
     private boolean verbose = false;
 
@@ -281,6 +282,12 @@ public class Log4jAppender extends AppenderSkeleton
         elasticsearchConfiguration.setType(type);
     }
 
+    public void setElasticSearchPublishHelperClass(String className) {
+        elasticsearchHelperClassName = className;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
 
     public void setTags(String tags) {
         if (null != tags) {
@@ -390,7 +397,10 @@ public class Log4jAppender extends AppenderSkeleton
             if (verbose) {
                 System.out.println("Registering Elasticsearch publish helper");
             }
-            publisher.addHelper(new ElasticsearchPublishHelper(elasticsearchConfiguration));
+            publisher.addHelper(
+                ElasticsearchPublishHelper.getPublishHelper(
+                    elasticsearchHelperClassName, elasticsearchConfiguration, Log4jAppender.class.getClassLoader())
+            );
         }
         return publisher;
     }

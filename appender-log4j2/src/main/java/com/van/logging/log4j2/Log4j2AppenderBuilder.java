@@ -114,6 +114,9 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     @PluginBuilderAttribute
     private String elasticsearchHosts;
 
+    @PluginBuilderAttribute
+    private String elasticSearchPublishHelperClass;
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -279,7 +282,10 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
                 System.out.println(String.format(
                     "Registering Elasticsearch publish helper -> %s", config));
             }
-            publisher.addHelper(new ElasticsearchPublishHelper(config));
+            publisher.addHelper(
+                ElasticsearchPublishHelper.getPublishHelper(
+                    elasticSearchPublishHelperClass, config, Log4j2AppenderBuilder.class.getClassLoader())
+            );
         });
 
         return publisher;
