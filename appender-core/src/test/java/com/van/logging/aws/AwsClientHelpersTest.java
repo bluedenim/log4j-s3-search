@@ -8,6 +8,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,10 +18,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.easymock.EasyMock.anyObject;
 import static org.junit.Assert.fail;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AwsClientHelpers.class})
+@PrepareForTest({AwsClientHelpers.class, AmazonS3ClientBuilder.class})
 public class AwsClientHelpersTest {
 
     String accessKey;
@@ -44,9 +46,11 @@ public class AwsClientHelpersTest {
          *  Tests that the region is set on the client builder before the client is built.
          */
         AmazonS3 mockedClient = PowerMock.createMock(AmazonS3.class);
-        AwsClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AwsClientBuilder.class);
+        AmazonS3ClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AmazonS3ClientBuilder.class);
         PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
         EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withCredentials(anyObject())).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withPathStyleAccessEnabled(false)).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withRegion(region.getName())).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.build()).andReturn(mockedClient);
         PowerMock.replayAll();
@@ -54,7 +58,8 @@ public class AwsClientHelpersTest {
         try {
             AmazonS3 client = AwsClientHelpers.buildClient(
                 accessKey, secretKey, null, region,
-                null, null
+                null, null,
+                false
             );
             assertEquals(mockedClient, client);
 
@@ -74,19 +79,57 @@ public class AwsClientHelpersTest {
          *  Tests that the service endpoint and signing region are set on the client builder before the client is built.
          */
         AmazonS3 mockedClient = PowerMock.createMock(AmazonS3.class);
-        AwsClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AwsClientBuilder.class);
+        AmazonS3ClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AmazonS3ClientBuilder.class);
         PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
         EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withCredentials(anyObject())).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withPathStyleAccessEnabled(false)).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, signingRegion)
-        )).andReturn(mockedS3ClientBuilder);
+            anyObject(AwsClientBuilder.EndpointConfiguration.class
+        ))).andReturn(mockedS3ClientBuilder);
         EasyMock.expect(mockedS3ClientBuilder.build()).andReturn(mockedClient);
         PowerMock.replayAll();
 
         try {
             AmazonS3 client = AwsClientHelpers.buildClient(
                 accessKey, secretKey, null, null,
-                serviceEndpoint, signingRegion
+                serviceEndpoint, signingRegion,
+                false
+            );
+            assertEquals(mockedClient, client);
+
+            // Not verifying AwsClientHelpers.class due to some odd behavior not related to the test.
+            // Maybe related to https://stackoverflow.com/questions/21690492/using-easymock-with-recursive-method
+            // but not gonna spend time on this right now since it's not relevant to the test.
+            PowerMock.verify(mockedClient, mockedS3ClientBuilder);
+
+        } catch (Exception ex) {
+            fail("Unexpected exception: " + ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testBuildClientWithPathStyleAccess() {
+        /**
+         *  Tests that the pathStyleAccess option is set on the client builder before the client is built.
+         */
+        AmazonS3 mockedClient = PowerMock.createMock(AmazonS3.class);
+        AmazonS3ClientBuilder mockedS3ClientBuilder = PowerMock.createMock(AmazonS3ClientBuilder.class);
+        PowerMock.mockStaticPartial(AwsClientHelpers.class, "getS3ClientBuilder");
+        EasyMock.expect(AwsClientHelpers.getS3ClientBuilder()).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withCredentials(anyObject())).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withPathStyleAccessEnabled(true)).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.withEndpointConfiguration(
+            anyObject(AwsClientBuilder.EndpointConfiguration.class
+            ))).andReturn(mockedS3ClientBuilder);
+        EasyMock.expect(mockedS3ClientBuilder.build()).andReturn(mockedClient);
+        PowerMock.replayAll();
+
+        try {
+            AmazonS3 client = AwsClientHelpers.buildClient(
+                accessKey, secretKey, null, null,
+                serviceEndpoint, signingRegion,
+                true
             );
             assertEquals(mockedClient, client);
 

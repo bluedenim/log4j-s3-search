@@ -56,6 +56,7 @@ public class S3Configuration {
 
     private String serviceEndpoint = null;
     private String signingRegion = null;
+    private boolean pathStyleAccess = false;
 
     private boolean compressionEnabled = false;
     private S3SSEConfiguration sseConfiguration = null;
@@ -93,6 +94,9 @@ public class S3Configuration {
         return cannedAcl;
     }
 
+    public boolean isPathStyleAccess() {
+        return pathStyleAccess;
+    }
     /**
      * Sets the canned ACL for S3 to use when storing objects.
      *
@@ -140,6 +144,9 @@ public class S3Configuration {
     }
     public void setSigningRegion(String signingRegion) {
         this.signingRegion = signingRegion;
+    }
+    public void setPathStyleAccess(boolean pathStyleAccess) {
+        this.pathStyleAccess = pathStyleAccess;
     }
 
     public boolean isCompressionEnabled() {

@@ -1,6 +1,5 @@
 {
   "mappings":{
-    "_doc":{
       "properties":{
         "hostname":{
           "type":"keyword"
@@ -30,5 +29,4 @@
         }
       }
     }
-  }
 }

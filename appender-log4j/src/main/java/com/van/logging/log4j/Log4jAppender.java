@@ -190,6 +190,10 @@ public class Log4jAppender extends AppenderSkeleton
         }
     }
 
+    public void setS3PathStyleAccess(String pathStyleAccess) {
+        getS3Configuration().setPathStyleAccess(Boolean.parseBoolean(pathStyleAccess));
+    }
+
     // Azure blob properties
     ///////////////////////////////////////////////////////////////////////////
     private BlobConfiguration getBlobConfiguration() {
