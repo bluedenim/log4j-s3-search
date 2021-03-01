@@ -138,6 +138,8 @@ Use either:
 
 but not all three simultaneously. You will get an error from AWS if you use all three.
 
+* **s3PathStyleAccess** -- "true" to use the older Path Style Access/URL when contacting S3 (see https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html#path-style-access)
+
 AWS credentials are required to interact with S3.  **NOTE** that the recommended way of configuring
 the credentials is:
   1) using roles assigned to instance profiles (when working with EC2 instances) or 
