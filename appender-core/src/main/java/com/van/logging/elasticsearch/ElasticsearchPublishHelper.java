@@ -24,9 +24,9 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  * Elasticsearch implementation of IPublishHelper to publish logs into Elasticsearch
  * Created by vly on 11/26/2016.
  */
-public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
+public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
 
-    private final ElasticsearchConfiguration configuration;
+    private ElasticsearchConfiguration configuration;
 
     private final List<Node> nodes = new ArrayList<>();
     private RestHighLevelClient client;
@@ -34,7 +34,11 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
     private int offset;
     private Date timeStamp;
 
-    public ElasticsearchPublishHelper(ElasticsearchConfiguration configuration) {
+    public ElasticsearchPublishHelper() {
+    }
+
+    @Override
+    public void initialize(ElasticsearchConfiguration configuration) {
         this.configuration = configuration;
         this.configuration.iterateHosts((host, port) -> {
             nodes.add(createNodeFromHost(host, port));
@@ -122,8 +126,8 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
         }
     }
 
-    public static ElasticsearchPublishHelper getPublishHelper(
-        String publishHelperNameSpec, ElasticsearchConfiguration elasticsearchConfiguration, ClassLoader classLoader) {
+    public static IElasticsearchPublishHelper getPublishHelper(
+        String publishHelperNameSpec, ClassLoader classLoader) {
         ElasticsearchPublishHelper helper = null;
         if (StringUtils.isTruthy(publishHelperNameSpec)) {
             System.out.printf("Attempting to instantiate %s%n", publishHelperNameSpec);
@@ -132,8 +136,8 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
                 cls = (Class<ElasticsearchPublishHelper>)classLoader.loadClass(
                     publishHelperNameSpec
                 );
-                Constructor<ElasticsearchPublishHelper> ctor = cls.getConstructor(ElasticsearchConfiguration.class);
-                helper = ctor.newInstance(elasticsearchConfiguration);
+                Constructor<ElasticsearchPublishHelper> ctor = cls.getConstructor();
+                helper = ctor.newInstance();
                 System.out.printf("Successfully registered %s as Elasticsearch publish helper%n", publishHelperNameSpec);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -142,7 +146,7 @@ public class ElasticsearchPublishHelper implements IPublishHelper<Event> {
 
         if (null == helper) {
             System.out.printf("Instantiating the default ElasticsearchPublishHelper%n");
-            helper = new ElasticsearchPublishHelper(elasticsearchConfiguration);
+            helper = new ElasticsearchPublishHelper();
         }
         return helper;
     }

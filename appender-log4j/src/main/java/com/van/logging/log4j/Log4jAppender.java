@@ -7,6 +7,7 @@ import com.van.logging.azure.BlobConfiguration;
 import com.van.logging.azure.BlobPublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
 import com.van.logging.elasticsearch.ElasticsearchPublishHelper;
+import com.van.logging.elasticsearch.IElasticsearchPublishHelper;
 import com.van.logging.gcp.CloudStorageConfiguration;
 import com.van.logging.gcp.CloudStoragePublishHelper;
 import com.van.logging.solr.SolrConfiguration;
@@ -397,10 +398,11 @@ public class Log4jAppender extends AppenderSkeleton
             if (verbose) {
                 System.out.println("Registering Elasticsearch publish helper");
             }
-            publisher.addHelper(
-                ElasticsearchPublishHelper.getPublishHelper(
-                    elasticsearchHelperClassName, elasticsearchConfiguration, Log4jAppender.class.getClassLoader())
-            );
+
+            IElasticsearchPublishHelper helper = ElasticsearchPublishHelper.getPublishHelper(
+                elasticsearchHelperClassName, Log4jAppender.class.getClassLoader());
+            helper.initialize(elasticsearchConfiguration);
+            publisher.addHelper(helper);
         }
         return publisher;
     }
