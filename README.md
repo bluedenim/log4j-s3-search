@@ -291,6 +291,7 @@ There are four properties for Elasticsearch, all but one are optional:
 * **elasticsearchIndex** -- the index in which to store the log data (default is "logindex")
 * **elasticsearchType** -- the type of a log data entry (default is "log")
 * **elasticsearchHosts** -- comma-delimited list of `host:port` values. There is no default; this property is *required*. 
+* **elasticSearchPublishHelperClass** -- optional fully-qualified name of the class (on the runtime classpath, of course) implementing `IElasticsearchPublishHelper` that will perform publishing to Elasticsearch 
 
 ```
 log4j.appender.L4jAppender.elasticsearchCluster=elasticsearch
