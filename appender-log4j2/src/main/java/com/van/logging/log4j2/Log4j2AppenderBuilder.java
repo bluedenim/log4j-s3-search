@@ -7,6 +7,7 @@ import com.van.logging.azure.BlobConfiguration;
 import com.van.logging.azure.BlobPublishHelper;
 import com.van.logging.elasticsearch.ElasticsearchConfiguration;
 import com.van.logging.elasticsearch.ElasticsearchPublishHelper;
+import com.van.logging.elasticsearch.IElasticsearchPublishHelper;
 import com.van.logging.gcp.CloudStorageConfiguration;
 import com.van.logging.gcp.CloudStoragePublishHelper;
 import com.van.logging.solr.SolrConfiguration;
@@ -21,7 +22,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder
+public class Log4j2AppenderBuilder<B extends Log4j2AppenderBuilder<B>>
+    extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder<B>
     implements org.apache.logging.log4j.core.util.Builder<Log4j2Appender> {
 
     // general properties
@@ -114,9 +116,11 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
     @PluginBuilderAttribute
     private String elasticsearchHosts;
 
+    @PluginBuilderAttribute
+    private String elasticSearchPublishHelperClass;
+
 
     @Override
-    @SuppressWarnings("unchecked")
     public Log4j2Appender build() {
         try {
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
@@ -279,7 +283,10 @@ public class Log4j2AppenderBuilder extends org.apache.logging.log4j.core.appende
                 System.out.println(String.format(
                     "Registering Elasticsearch publish helper -> %s", config));
             }
-            publisher.addHelper(new ElasticsearchPublishHelper(config));
+            IElasticsearchPublishHelper helper = ElasticsearchPublishHelper.getPublishHelper(
+                elasticSearchPublishHelperClass, Log4j2AppenderBuilder.class.getClassLoader());
+            helper.initialize(config);
+            publisher.addHelper(helper);
         });
 
         return publisher;
