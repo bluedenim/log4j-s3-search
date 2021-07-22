@@ -168,13 +168,6 @@
                 </executions>
             </plugin>
         </plugins>
-        <extensions>
-            <extension>
-                <groupId>com.gkatzioura.maven.cloud</groupId>
-                <artifactId>google-storage-wagon</artifactId>
-                <version>2.3</version>
-            </extension>
-        </extensions>
     </build>
     <distributionManagement>
         <snapshotRepository>
