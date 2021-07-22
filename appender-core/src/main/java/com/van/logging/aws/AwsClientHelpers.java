@@ -74,7 +74,7 @@ public class AwsClientHelpers {
         if (region != null) {
             builder = builder.withRegion(region.getName());
         }
-        if (serviceEndpoint != null) {
+        if (serviceEndpoint != null && !serviceEndpoint.isEmpty()) {
             // I don't know if signingRegion is required or if null is acceptable in practice, so I'm going to allow
             // it and install the EndpointConfiguration as long as the serviceEndpoint is defined.
             // Disclaimer: I have not tested this; I'm going strictly by docs like:

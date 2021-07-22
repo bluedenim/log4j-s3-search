@@ -54,7 +54,6 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
             s3.getServiceEndpoint(), s3.getSigningRegion(),
             s3.isPathStyleAccess()
         );
-
         this.bucket = s3.getBucket().toLowerCase();
         this.storageDestinationAdjuster = storageDestinationAdjuster;
         this.path = s3.getPath();
