@@ -178,14 +178,20 @@
     </build>
     <distributionManagement>
         <snapshotRepository>
-            <id>log4j2-snapshot</id>
-            <url>gs://airbyte-maven-jars/snapshot</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
-            <id>log4j2-release</id>
-            <url>gs://airbyte-maven-jars/release</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
     </distributionManagement>
+    <scm>
+        <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
+        <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
+        <url>https://github.com/dexecutor/dependent-tasks-executor</url>
+        <tag>appender-log4j2-2.0.0</tag>
+    </scm>
     <profiles>
         <profile>
             <id>release-sign-artifacts</id>
