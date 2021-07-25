@@ -171,7 +171,7 @@ public class S3Configuration {
      */
     static Region resolveRegion(String str) {
         Region region = null;
-        if ((null != str) && (str.length() > 0)) {
+        if (StringUtils.isTruthy(str)) {
             Regions regions;
             try {
                 regions = Regions.valueOf(str);

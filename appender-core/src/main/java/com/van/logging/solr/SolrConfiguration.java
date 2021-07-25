@@ -1,5 +1,7 @@
 package com.van.logging.solr;
 
+import com.van.logging.utils.StringUtils;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -17,7 +19,7 @@ public class SolrConfiguration {
     }
 
     public void setUrl(String solrUrl) {
-        if ((null != solrUrl) && (solrUrl.length() > 0)) {
+        if (StringUtils.isTruthy(solrUrl)) {
             try {
                 this.url = new URL(solrUrl);
             } catch (MalformedURLException e) {
