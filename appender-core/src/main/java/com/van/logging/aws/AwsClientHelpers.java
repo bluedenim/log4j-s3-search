@@ -5,6 +5,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.van.logging.utils.StringUtils;
 
 public class AwsClientHelpers {
 
@@ -74,7 +75,7 @@ public class AwsClientHelpers {
         if (region != null) {
             builder = builder.withRegion(region.getName());
         }
-        if (serviceEndpoint != null && !serviceEndpoint.isEmpty()) {
+        if (StringUtils.isTruthy(serviceEndpoint)) {
             // I don't know if signingRegion is required or if null is acceptable in practice, so I'm going to allow
             // it and install the EndpointConfiguration as long as the serviceEndpoint is defined.
             // Disclaimer: I have not tested this; I'm going strictly by docs like:
