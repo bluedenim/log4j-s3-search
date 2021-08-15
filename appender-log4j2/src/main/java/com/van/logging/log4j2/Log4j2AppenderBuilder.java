@@ -22,8 +22,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Log4j2AppenderBuilder<B extends Log4j2AppenderBuilder<B>>
-    extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder<B>
+public class Log4j2AppenderBuilder
+    extends org.apache.logging.log4j.core.appender.AbstractAppender.Builder<Log4j2AppenderBuilder>
     implements org.apache.logging.log4j.core.util.Builder<Log4j2Appender> {
 
     // general properties
@@ -162,6 +162,7 @@ public class Log4j2AppenderBuilder<B extends Log4j2AppenderBuilder<B>>
             config.setServiceEndpoint(s3ServiceEndpoint);
             config.setSigningRegion(s3SigningRegion);
             config.setPathStyleAccess(s3PathStyleAccess);
+            config.setCompressionEnabled(Boolean.parseBoolean(s3Compression));
             if (StringUtils.isTruthy(s3CannedAcl)) {
                 try {
                     config.setCannedAclFromValue(s3CannedAcl);
