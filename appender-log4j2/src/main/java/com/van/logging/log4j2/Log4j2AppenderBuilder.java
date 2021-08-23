@@ -68,6 +68,9 @@ public class Log4j2AppenderBuilder
     private String s3Compression;
 
     @PluginBuilderAttribute
+    private String s3KeyGzSuffixEnabled;
+
+    @PluginBuilderAttribute
     private String s3SseKeyType;
 
     @PluginBuilderAttribute
@@ -89,6 +92,9 @@ public class Log4j2AppenderBuilder
     @PluginBuilderAttribute
     private String azureBlobCompressionEnabled;
 
+    @PluginBuilderAttribute
+    private String azureBlobNameGzSuffixEnabled;
+
     // GCP Storage properties
     @PluginBuilderAttribute
     private String gcpStorageBucket;
@@ -98,6 +104,9 @@ public class Log4j2AppenderBuilder
 
     @PluginBuilderAttribute
     private String gcpStorageCompressionEnabled;
+
+    @PluginBuilderAttribute
+    private String gcpStorageBlobNameGzSuffixEnabled;
 
     // Solr properties
     @PluginBuilderAttribute
@@ -163,6 +172,7 @@ public class Log4j2AppenderBuilder
             config.setSigningRegion(s3SigningRegion);
             config.setPathStyleAccess(s3PathStyleAccess);
             config.setCompressionEnabled(Boolean.parseBoolean(s3Compression));
+            config.setKeyGzSuffixEnabled(Boolean.parseBoolean(s3KeyGzSuffixEnabled));
             if (StringUtils.isTruthy(s3CannedAcl)) {
                 try {
                     config.setCannedAclFromValue(s3CannedAcl);
@@ -194,6 +204,7 @@ public class Log4j2AppenderBuilder
                 config.setBlobNamePrefix(this.azureBlobNamePrefix);
             }
             config.setCompressionEnabled(Boolean.parseBoolean(this.azureBlobCompressionEnabled));
+            config.setBlobNameGzSuffixEnabled(Boolean.parseBoolean(this.azureBlobNameGzSuffixEnabled));
             blobConfiguration = Optional.of(config);
         }
         return blobConfiguration;
@@ -206,6 +217,7 @@ public class Log4j2AppenderBuilder
             config.setBucketName(this.gcpStorageBucket);
             config.setBlobNamePrefix(this.gcpStorageBlobNamePrefix);
             config.setCompressionEnabled(Boolean.parseBoolean(this.gcpStorageCompressionEnabled));
+            config.setBlobNameGzSuffixEnabled(Boolean.parseBoolean(this.gcpStorageBlobNameGzSuffixEnabled));
             cloudStorageConfiguration = Optional.of(config);
         }
         return cloudStorageConfiguration;

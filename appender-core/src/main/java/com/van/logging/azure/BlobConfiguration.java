@@ -11,9 +11,14 @@ public class BlobConfiguration {
     private String containerName = "";
     private String blobNamePrefix = DEFAULT_LOG_CONTAINER_PATH;
     private boolean compressionEnabled = false;
+    private boolean blobNameGzSuffixEnabled = false;
 
     public void setStorageConnectionString(String storageConnectionString) {
         this.storageConnectionString = storageConnectionString;
+    }
+
+    public void setBlobNameGzSuffixEnabled(boolean gzSuffix) {
+        this.blobNameGzSuffixEnabled = gzSuffix;
     }
 
     public void setContainerName(String containerName) {
@@ -42,6 +47,10 @@ public class BlobConfiguration {
 
     public boolean isCompressionEnabled() {
         return compressionEnabled;
+    }
+
+    public boolean isBlobNameGzSuffixEnabled() {
+        return blobNameGzSuffixEnabled;
     }
 
     public String toString() {

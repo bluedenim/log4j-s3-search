@@ -32,6 +32,14 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
         this.storageDestinationAdjuster = storageDestinationAdjuster;
     }
 
+    static String getBlobName(PublishContext context, String path, BlobConfiguration blobConfiguration) {
+        String blobName = String.format("%s%s", path, context.getCacheName());
+        if (blobConfiguration.isCompressionEnabled() && blobConfiguration.isBlobNameGzSuffixEnabled()) {
+            blobName = String.format("%s.gz", blobName);
+        }
+        return blobName;
+    }
+
     @Override
     protected void publishFile(File file, PublishContext context) throws Exception {
         String connectionString = blobConfiguration.getStorageConnectionString();
@@ -52,7 +60,7 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
             ),
             "/"
         );
-        String blobName = String.format("%s%s", path, context.getCacheName());
+        String blobName = getBlobName(context, path, blobConfiguration);
         if (this.verbose) {
             System.out.println(String.format("Publishing %s to Azure blob (container=%s; blob=%s):",
                 file.getAbsolutePath(), blobConfiguration.getContainerName(), blobName));
