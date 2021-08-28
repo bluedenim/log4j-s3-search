@@ -63,7 +63,7 @@ Please **substitute in the latest version** in your case (so I don't have to kee
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j</artifactId>
-    <version>...</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 
@@ -72,7 +72,7 @@ Similarly, when coding with Log4j 2.x:
 <dependency>
     <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j2</artifactId>
-    <version>...</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 
