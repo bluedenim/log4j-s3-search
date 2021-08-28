@@ -59,6 +59,7 @@ public class S3Configuration {
     private boolean pathStyleAccess = false;
 
     private boolean compressionEnabled = false;
+    private boolean keyGzSuffixEnabled = false;
     private S3SSEConfiguration sseConfiguration = null;
 
     private CannedAccessControlList cannedAcl = null;
@@ -152,9 +153,15 @@ public class S3Configuration {
     public boolean isCompressionEnabled() {
         return compressionEnabled;
     }
+    public boolean isKeyGzSuffixEnabled() {
+        return keyGzSuffixEnabled;
+    }
 
     public void setCompressionEnabled(boolean compressionEnabled) {
         this.compressionEnabled = compressionEnabled;
+    }
+    public void setKeyGzSuffixEnabled(boolean gzSuffix) {
+        this.keyGzSuffixEnabled = gzSuffix;
     }
 
     /**

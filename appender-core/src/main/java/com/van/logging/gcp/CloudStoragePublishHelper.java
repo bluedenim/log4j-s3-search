@@ -31,6 +31,14 @@ public class CloudStoragePublishHelper extends AbstractFilePublishHelper {
         this.storageDestinationAdjuster = storageDestinationAdjuster;
     }
 
+    static String getBlobName(PublishContext context, String path, CloudStorageConfiguration configuration) {
+        String blobName = String.format("%s%s", path, context.getCacheName());
+        if (configuration.isCompressionEnabled() && configuration.isBlobNameGzSuffixEnabled()) {
+            blobName = String.format("%s.gz", blobName);
+        }
+        return blobName;
+    }
+
     @Override
     protected void publishFile(File file, PublishContext context) throws Exception {
         String bucketName = configuration.getBucketName();
@@ -46,7 +54,7 @@ public class CloudStoragePublishHelper extends AbstractFilePublishHelper {
             ),
             "/"
         );
-        String blobName = String.format("%s%s", path, context.getCacheName());
+        String blobName = getBlobName(context, path, configuration);
         if (this.verbose) {
             System.out.println(String.format("Publishing %s to GCS blob (bucket=%s; blob=%s):",
                 file.getAbsolutePath(), bucketName, blobName));

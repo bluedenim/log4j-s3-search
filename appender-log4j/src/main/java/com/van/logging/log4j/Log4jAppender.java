@@ -174,6 +174,10 @@ public class Log4jAppender extends AppenderSkeleton
         getS3Configuration().setCompressionEnabled(Boolean.parseBoolean(enable));
     }
 
+    public void setS3KeyGzSuffixEnabled(String gzKeySuffix) {
+        getS3Configuration().setKeyGzSuffixEnabled(Boolean.parseBoolean(gzKeySuffix));
+    }
+
     public void setS3SseKeyType(String s3SseKeyType) {
         S3Configuration.S3SSEConfiguration sseConfig = new S3Configuration.S3SSEConfiguration(
             S3Configuration.SSEType.valueOf(s3SseKeyType),
@@ -221,6 +225,10 @@ public class Log4jAppender extends AppenderSkeleton
         getBlobConfiguration().setCompressionEnabled(Boolean.parseBoolean(enable));
     }
 
+    public void setAzureBlobNameGzSuffixEnabled(String gzSuffix) {
+        getBlobConfiguration().setBlobNameGzSuffixEnabled(Boolean.parseBoolean(gzSuffix));
+    }
+
     // Google Cloud Storage properties
     ///////////////////////////////////////////////////////////////////////////
     private CloudStorageConfiguration getCloudStorageConfiguration() {
@@ -240,6 +248,10 @@ public class Log4jAppender extends AppenderSkeleton
 
     public void setGcpStorageCompressionEnabled(String enable) {
         getCloudStorageConfiguration().setCompressionEnabled(Boolean.parseBoolean(enable));
+    }
+
+    public void setGcpStorageBlobNameGzSuffixEnabled(String gzSuffix) {
+        getCloudStorageConfiguration().setBlobNameGzSuffixEnabled(Boolean.parseBoolean(gzSuffix));
     }
 
     // Solr properties

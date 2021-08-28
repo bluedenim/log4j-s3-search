@@ -39,6 +39,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
     private final S3Configuration.S3SSEConfiguration sseConfig;
     private final CannedAccessControlList cannedAcl;
     private final IStorageDestinationAdjuster storageDestinationAdjuster;
+    private final boolean isCompressionEnabled;
+    private final boolean keyGzSuffix;
 
     private volatile boolean bucketExists = false;
 
@@ -59,6 +61,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         this.path = s3.getPath();
         this.sseConfig = s3.getSseConfiguration();
         this.cannedAcl = s3.getCannedAcl();
+        this.isCompressionEnabled = s3.isCompressionEnabled();
+        this.keyGzSuffix = s3.isKeyGzSuffixEnabled();
     }
 
     @Override
@@ -77,6 +81,14 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         }
     }
 
+    static String getKey(PublishContext context, String path, boolean isCompressionEnabled, boolean keyGzSuffix) {
+        String key = String.format("%s%s", path, context.getCacheName());
+        if (isCompressionEnabled && keyGzSuffix) {
+            key = String.format("%s.gz", key);
+        }
+        return key;
+    }
+
     @Override
     protected void publishFile(File file, PublishContext context) {
         String path = StringUtils.addTrailingIfNeeded(
@@ -86,9 +98,8 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
             ),
             "/"
         );
-        String key = String.format("%s%s", path, context.getCacheName());
-		/* System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):",
-			bucket, path)); */
+        String key = getKey(context, path, isCompressionEnabled, keyGzSuffix);
+		System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):", bucket, key));
 
         try {
             // System.out.println(String.format("Publishing content of %s to S3.", tempFile));

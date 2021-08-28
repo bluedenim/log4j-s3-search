@@ -175,6 +175,7 @@ logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 
 Content configurations
 * **s3Compression** -- if set to "true," then contents will be GZIP'ed before publishing into S3
+* **s3KeyGzSuffixEnabled** -- if set to "true," then the s3 key will have a `.gz` suffix when `s3Compression` is enabled. (If `s3Compression` is not "true," this is ignored.)  
 * **s3SseKeyType** -- if set to "SSE_S3," then contents published will be flagged to use SSE-S3 encryption (see https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
 
 ### Azure Blob
@@ -183,6 +184,7 @@ These properties (**please use your own values**) control how the logs will be s
 * **azureBlobNamePrefix** -- the prefix for the blob name.
 * **azureBlobCompressionEnabled** -- if set to "true," then contents will be GZIP'ed before publishing.
 * **azureStorageConnectionString** -- optional value for the connection string for connecting to Azure. See note below.
+* **azureBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when `azureBlobCompressionEnabled` is enabled. (If `azureBlobCompressionEnabled` is not "true," this is ignored.)
 
 A sample snippet from `log4j.properties` (with the optional azureStorageConnectionString property set):
 ```
@@ -219,6 +221,8 @@ These properties (**please use your own values**) control how the logs will be s
 * **gcpStorageBlobNamePrefix** -- the prefix for the blob name.
 * **gcpStorageCompressionEnabled** -- if set to "true," then contents will be GZIP'ed before publishing. 
   The default is "false."
+* **gcpStorageBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when `gcpStorageCompressionEnabled` is enabled. (If `gcpStorageCompressionEnabled` is not "true," this is ignored.)
+
 
 Just as in the case with AWS S3, there is an [extensive authentication process](https://github.com/googleapis/google-cloud-java#authentication) and list of options.
 This tool will assume the running process has the necessary authentication setup done.

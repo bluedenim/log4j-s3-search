@@ -17,6 +17,7 @@ public class CloudStorageConfiguration {
     private String bucketName;
     private String blobNamePrefix = DEFAULT_BLOB_PATH;
     private boolean compressionEnabled = false;
+    private boolean blobNameGzSuffixEnabled = false;
 
     public String getBucketName() {
         return bucketName;
@@ -40,5 +41,13 @@ public class CloudStorageConfiguration {
 
     public void setCompressionEnabled(boolean compressionEnabled) {
         this.compressionEnabled = compressionEnabled;
+    }
+
+    public boolean isBlobNameGzSuffixEnabled() {
+        return blobNameGzSuffixEnabled;
+    }
+
+    public void setBlobNameGzSuffixEnabled(boolean blobNameGzSuffixEnabled) {
+        this.blobNameGzSuffixEnabled = blobNameGzSuffixEnabled;
     }
 }
