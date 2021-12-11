@@ -353,7 +353,9 @@ public class Log4jAppender extends AppenderSkeleton
             stagingLog = new LoggingEventCache<Event>(
                 uuid.toString().replaceAll("-",""),
                 createCacheMonitor(),
-                createCachePublisher());
+                createCachePublisher(),
+                verbose
+            );
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
@@ -412,7 +414,7 @@ public class Log4jAppender extends AppenderSkeleton
             }
 
             IElasticsearchPublishHelper helper = ElasticsearchPublishHelper.getPublishHelper(
-                elasticsearchHelperClassName, Log4jAppender.class.getClassLoader());
+                elasticsearchHelperClassName, Log4jAppender.class.getClassLoader(), verbose);
             helper.initialize(elasticsearchConfiguration);
             publisher.addHelper(helper);
         }
@@ -420,7 +422,7 @@ public class Log4jAppender extends AppenderSkeleton
     }
 
     IBufferMonitor<Event> createCacheMonitor() {
-        IBufferMonitor<Event> monitor = new CapacityBasedBufferMonitor<Event>(stagingBufferSize);
+        IBufferMonitor<Event> monitor = new CapacityBasedBufferMonitor<Event>(stagingBufferSize, verbose);
         if (0 < stagingBufferAge) {
             monitor = new TimePeriodBasedBufferMonitor<Event>(stagingBufferAge);
         }

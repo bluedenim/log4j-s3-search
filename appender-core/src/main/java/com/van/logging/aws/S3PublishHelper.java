@@ -99,7 +99,9 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
             "/"
         );
         String key = getKey(context, path, isCompressionEnabled, keyGzSuffix);
-		System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):", bucket, key));
+        if (this.verbose) {
+            System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):", bucket, key));
+        }
 
         try {
             // System.out.println(String.format("Publishing content of %s to S3.", tempFile));

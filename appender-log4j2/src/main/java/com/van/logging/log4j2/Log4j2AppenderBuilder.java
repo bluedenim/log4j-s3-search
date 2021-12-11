@@ -134,7 +134,7 @@ public class Log4j2AppenderBuilder
         try {
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
             LoggingEventCache<Event> cache = new LoggingEventCache<>(
-                cacheName, createCacheMonitor(), createCachePublisher());
+                cacheName, createCacheMonitor(), createCachePublisher(), verbose);
             return installFilter(new Log4j2Appender(
                     getName(), getFilter(), getLayout(),
                     true, cache));
@@ -297,7 +297,7 @@ public class Log4j2AppenderBuilder
                     "Registering Elasticsearch publish helper -> %s", config));
             }
             IElasticsearchPublishHelper helper = ElasticsearchPublishHelper.getPublishHelper(
-                elasticSearchPublishHelperClass, Log4j2AppenderBuilder.class.getClassLoader());
+                elasticSearchPublishHelperClass, Log4j2AppenderBuilder.class.getClassLoader(), verbose);
             helper.initialize(config);
             publisher.addHelper(helper);
         });
@@ -319,7 +319,7 @@ public class Log4j2AppenderBuilder
     }
 
     IBufferMonitor<Event> createCacheMonitor() {
-        IBufferMonitor<Event> monitor = new CapacityBasedBufferMonitor<Event>(stagingBufferSize);
+        IBufferMonitor<Event> monitor = new CapacityBasedBufferMonitor<Event>(stagingBufferSize, verbose);
         if (0 < stagingBufferAge) {
             monitor = new TimePeriodBasedBufferMonitor<Event>(stagingBufferAge);
         }

@@ -86,7 +86,11 @@ public class LoggingEventCacheTest {
     public void testTimeFlushing() {
         try {
             LoggingEventCache<LoggingEvent> cache = new LoggingEventCache<>(
-                "blah", new TimePeriodBasedBufferMonitor<>(BATCH_PERIOD_SECS, TimeUnit.SECONDS), publisher);
+                "blah",
+                new TimePeriodBasedBufferMonitor<>(BATCH_PERIOD_SECS, TimeUnit.SECONDS, true),
+                publisher,
+                true
+            );
             long start = System.currentTimeMillis();
             for (int i = 0; i < EVENT_COUNT; i++) {
                 cache.add(new LoggingEvent("org.van.Blah", logger, INFO,
@@ -118,7 +122,11 @@ public class LoggingEventCacheTest {
     public void testPublishInCurrentThread() {
         try {
             LoggingEventCache<LoggingEvent> cache = new LoggingEventCache<>(
-                "blah", new CapacityBasedBufferMonitor<>(BATCH_SIZE), publisher);
+                "blah",
+                new CapacityBasedBufferMonitor<>(BATCH_SIZE, true),
+                publisher,
+                true
+            );
 
             int eventsToPublish = BATCH_SIZE / 2;
             for (int i = 0; i < eventsToPublish; i++) {

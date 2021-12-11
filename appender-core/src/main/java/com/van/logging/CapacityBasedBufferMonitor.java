@@ -9,6 +9,7 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
     private final int cacheLimit;
     private final Object countGuard = new Object();
     private int count = 0;
+    private boolean verbose = false;
 
     /**
      * Creates an instance with the cache limit as provided. When hooked up to a
@@ -20,7 +21,12 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
      *                   limit, the event cache will be flushed and published.
      */
     public CapacityBasedBufferMonitor(int cacheLimit) {
+        this(cacheLimit, false);
+    }
+
+    public CapacityBasedBufferMonitor(int cacheLimit, boolean verbose) {
         this.cacheLimit = cacheLimit;
+        this.verbose = verbose;
     }
 
     @Override
@@ -43,7 +49,9 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
 
     @Override
     public void shutDown() {
-        System.out.println("CapacityBasedBufferMonitor: shutting down.");
+        if (this.verbose) {
+            System.out.println("CapacityBasedBufferMonitor: shutting down.");
+        }
     }
 
     @Override

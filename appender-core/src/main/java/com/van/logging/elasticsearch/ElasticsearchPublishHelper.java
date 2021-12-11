@@ -128,6 +128,11 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
 
     public static IElasticsearchPublishHelper getPublishHelper(
         String publishHelperNameSpec, ClassLoader classLoader) {
+        return getPublishHelper(publishHelperNameSpec, classLoader, false);
+    }
+
+    public static IElasticsearchPublishHelper getPublishHelper(
+        String publishHelperNameSpec, ClassLoader classLoader, boolean verbose) {
         ElasticsearchPublishHelper helper = null;
         if (StringUtils.isTruthy(publishHelperNameSpec)) {
             System.out.printf("Attempting to instantiate %s%n", publishHelperNameSpec);
@@ -138,14 +143,20 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
                 );
                 Constructor<ElasticsearchPublishHelper> ctor = cls.getConstructor();
                 helper = ctor.newInstance();
-                System.out.printf("Successfully registered %s as Elasticsearch publish helper%n", publishHelperNameSpec);
+                if (verbose) {
+                    System.out.printf(
+                        "Successfully registered %s as Elasticsearch publish helper%n", publishHelperNameSpec
+                    );
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
 
         if (null == helper) {
-            System.out.printf("Instantiating the default ElasticsearchPublishHelper%n");
+            if (verbose) {
+                System.out.printf("Instantiating the default ElasticsearchPublishHelper%n");
+            }
             helper = new ElasticsearchPublishHelper();
         }
         return helper;

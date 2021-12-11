@@ -18,7 +18,7 @@ public class TimePeriodBasedCacheMonitorTest extends AbstractBufferMonitorTest {
     public void testFlush() {
         try {
             TimePeriodBasedBufferMonitor monitor =
-                new TimePeriodBasedBufferMonitor(3, TimeUnit.SECONDS);
+                new TimePeriodBasedBufferMonitor(3, TimeUnit.SECONDS, true);
             long started = System.currentTimeMillis();
             // Add an event every second for 10 seconds
             for (int i = 0; i < 10; i++) {
