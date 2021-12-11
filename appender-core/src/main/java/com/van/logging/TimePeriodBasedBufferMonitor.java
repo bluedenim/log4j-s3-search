@@ -23,6 +23,7 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
 
     private final AtomicBoolean monitorStarted = new AtomicBoolean(false);
     private final long periodInSeconds;
+    private final boolean verbose;
 
     static class TimeDurationTuple {
         public final long amount;
@@ -40,11 +41,12 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
     }
 
     public TimePeriodBasedBufferMonitor(int minutes) {
-        this(minutes, TimeUnit.MINUTES);
+        this(minutes, TimeUnit.MINUTES, false);
     }
 
-    public TimePeriodBasedBufferMonitor(int amount, TimeUnit timeUnit) {
+    public TimePeriodBasedBufferMonitor(int amount, TimeUnit timeUnit, boolean verbose) {
         this.periodInSeconds = timeUnit.toSeconds(amount);
+        this.verbose = verbose;
     }
 
     @Override
@@ -78,7 +80,9 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
 
     @Override
     public void shutDown() {
-        System.out.println("TimePeriodBasedBufferMonitor: shutting down.");
+        if (this.verbose) {
+            System.out.println("TimePeriodBasedBufferMonitor: shutting down.");
+        }
         this.scheduledExecutorService.shutdownNow();
     }
 

@@ -46,6 +46,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
     private final IBufferMonitor<T> cacheMonitor;
     private final IBufferPublisher<T> cachePublisher;
+    private final boolean verbose;
 
     private final AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
 
@@ -67,16 +68,19 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 ExecutorService executorService =
                     (ExecutorService) instance.executorServiceRef.getAndSet(null);
                 if (null != executorService) {
-                    System.out.println(
-                        String.format("LoggingEventCache %s: shutting down", instance));
+                    if (instance.verbose) {
+                        System.out.println(String.format("LoggingEventCache %s: shutting down", instance));
+                    }
                     executorService.shutdown();
                     boolean terminated = executorService.awaitTermination(
                         SHUTDOWN_TIMEOUT_SECS,
                         TimeUnit.SECONDS
                     );
-                    System.out.println(
-                        String.format("LoggingEventCache: Executor service terminated within timeout: %s", terminated)
-                    );
+                    if (instance.verbose) {
+                        System.out.println(String.format(
+                            "LoggingEventCache: Executor service terminated within timeout: %s", terminated
+                        ));
+                    }
                     success = success & terminated;
                 }
 
@@ -113,6 +117,12 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      */
     public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
                              IBufferPublisher<T> cachePublisher) throws Exception {
+        this(cacheName, cacheMonitor, cachePublisher, false);
+    }
+
+    public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
+                             IBufferPublisher<T> cachePublisher,
+                             boolean verbose) throws Exception {
         if (null == cacheName) {
             this.cacheName = DEFAULT_TEMP_FILE_PREFIX;
         } else {
@@ -120,6 +130,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
         }
         this.cacheMonitor = cacheMonitor;
         this.cachePublisher = cachePublisher;
+        this.verbose = verbose;
 
         synchronized(bufferLock) {
             tempBufferFile = File.createTempFile(this.cacheName, null);

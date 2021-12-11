@@ -43,7 +43,7 @@ public class LoggingEventCacheTest {
     public void testShutdown() {
         final TestMonitor monitor = new TestMonitor();
         try {
-            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub());
+            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub(), true);
             LoggingEventCache.shutDown();
 
             Assert.assertTrue("Monitor is shut down when LoggingEventCache is shut down", monitor.isShutdown);
@@ -58,8 +58,8 @@ public class LoggingEventCacheTest {
         final TestMonitor monitor = new TestMonitor();
         final TestMonitor monitor2 = new TestMonitor();
         try {
-            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub());
-            LoggingEventCache<String> inst2 = new LoggingEventCache<>(CACHE_NAME, monitor2, new PublisherStub());
+            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub(), true);
+            LoggingEventCache<String> inst2 = new LoggingEventCache<>(CACHE_NAME, monitor2, new PublisherStub(), true);
 
             LoggingEventCache.shutDown();
 
