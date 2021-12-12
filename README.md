@@ -1,5 +1,10 @@
 # log4j-s3-search 
 
+## IMPORTANT NOTE on log4j vulnerabilty: https://www.cisa.gov/news/2021/12/11/statement-cisa-director-easterly-log4j-vulnerability
+
+log4j-s3-search as of release 3.2.0 was built with log4j2 2.13.2. An upcoming release 3.3.0 will bump up log4j2 to 2.15.0, the version recommended above.
+
+
 ![](misc/log4j-s3-search.png)
 
 A [Log4j appender](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Appender.html) implementation that 
