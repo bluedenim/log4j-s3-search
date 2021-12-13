@@ -2,7 +2,7 @@
 
 ## IMPORTANT NOTE on log4j vulnerabilty: https://www.cisa.gov/news/2021/12/11/statement-cisa-director-easterly-log4j-vulnerability
 
-* log4j-s3-search as of release 3.2.0 was built with log4j2 2.13.2. An upcoming release 3.3.0 will bump up log4j2 to 2.15.0, the version recommended above.
+* log4j-s3-search Release **3.3.0** was built with **log4j2 2.15.0**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.15.0 or higher for your applications.
 * **PLEASE consider upgrading from Log4j 1.x to Log4j 2.x (particularly 2.15.0+)**. Log4j 1.x is deprecated, and there are vulnerabilities with it that nobody will fix.
 
 ![](misc/log4j-s3-search.png)
