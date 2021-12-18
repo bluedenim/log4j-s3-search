@@ -3,7 +3,7 @@
     <groupId>com.therealvan</groupId>
     <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.1-SNAPSHOT</version>
+    <version>3.5.1-SNAPSHOT</version>
     <name>log4j-s3-search</name>
     <description>Parent POM for the log4j-s3-search project and used by appender-core, appender-log4j, and appender-log4j2 projects.</description>
     <url>https://github.com/bluedenim/log4j-s3-search</url>
@@ -17,7 +17,7 @@
 	    <organizationUrl>http://www.therealvan.com/</organizationUrl>
             <roles>
                 <role>developer</role>
-	    </roles>
+	        </roles>
 	    <timezone>America/Los_Angeles</timezone>
 	</developer>
     </developers>
@@ -151,19 +151,19 @@
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
     </distributionManagement>
     <scm>
         <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
         <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
         <url>https://github.com/dexecutor/dependent-tasks-executor</url>
-        <tag>log4j-s3-search-2.1.1</tag>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
     <profiles>
         <profile>
             <id>release-sign-artifacts</id>
