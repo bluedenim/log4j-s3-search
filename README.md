@@ -2,8 +2,8 @@
 
 ## IMPORTANT NOTE on log4j vulnerabilty: https://www.cisa.gov/news/2021/12/11/statement-cisa-director-easterly-log4j-vulnerability
 
-* log4j-s3-search Release **3.3.0** was built with **log4j2 2.15.0**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.15.0 or higher for your applications.
-* **PLEASE consider upgrading from Log4j 1.x to Log4j 2.x (particularly 2.15.0+)**. Log4j 1.x is deprecated, and there are vulnerabilities with it that nobody will fix.
+* log4j-s3-search Release **3.5.0** was built with **log4j2 2.17.0**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.17.0 **or higher** for your applications.
+* **PLEASE consider upgrading from Log4j 1.x to Log4j 2.x (particularly 2.17.0+)**. Log4j 1.x is deprecated, and there are vulnerabilities with it that nobody will fix.
 
 ![](misc/log4j-s3-search.png)
 
@@ -27,11 +27,10 @@ The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should
 correct Java version (see below).
 
 
-Release / tag|JSDK version
------------|------------
-2.x and earlier|[Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html)
-3.x|[Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
-
+| Release / tag   | JSDK version                                                                                   |
+|-----------------|------------------------------------------------------------------------------------------------|
+| 2.x and earlier | [Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html) |
+| 3.x             | [Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)      |
 
 Note that using [Java SDK (JDK) 14](https://docs.oracle.com/en/java/javase/14/) to build the projects locally will
 have errors. You can try basing your work on [PR 59](https://github.com/bluedenim/log4j-s3-search/pull/59) if you
