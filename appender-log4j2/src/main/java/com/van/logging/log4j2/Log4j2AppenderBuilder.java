@@ -135,9 +135,11 @@ public class Log4j2AppenderBuilder
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
             LoggingEventCache<Event> cache = new LoggingEventCache<>(
                 cacheName, createCacheMonitor(), createCachePublisher(), verbose);
-            return installFilter(new Log4j2Appender(
-                    getName(), getFilter(), getLayout(),
-                    true, cache));
+            Log4j2Appender appender = new Log4j2Appender(
+                getName(), getFilter(), getLayout(),
+                true, cache);
+            appender.setVerbose(verbose);
+            return installFilter(appender);
         } catch (Exception e) {
             throw new RuntimeException("Cannot build appender due to errors", e);
         }

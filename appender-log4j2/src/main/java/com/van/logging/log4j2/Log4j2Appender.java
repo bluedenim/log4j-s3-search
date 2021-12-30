@@ -18,7 +18,7 @@ import java.util.Objects;
 @Plugin(name = "Log4j2Appender", category = "Core", elementType = "appender")
 public class Log4j2Appender extends AbstractAppender {
 
-    private LoggingEventCache<Event> eventCache = null;
+    private final LoggingEventCache<Event> eventCache;
     private boolean verbose = false;
 
     @PluginBuilderFactory
@@ -28,21 +28,37 @@ public class Log4j2Appender extends AbstractAppender {
 
     Log4j2Appender(
         String name,
-       Filter filter,
-       Layout<? extends Serializable> layout,
-       boolean ignoreExceptions,
-       LoggingEventCache<Event> eventCache
+        Filter filter,
+        Layout<? extends Serializable> layout,
+        boolean ignoreExceptions,
+        LoggingEventCache<Event> eventCache
     ) {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
         this.eventCache = eventCache;
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                LOGGER.debug("Publishing staging log on shutdown...");
-                eventCache.flushAndPublish(true);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (this.verbose) {
+                System.out.println("Publishing staging log on shutdown...");
             }
-        });
+            eventCache.flushAndPublish(true);
+            try {
+                if (this.verbose) {
+                    System.out.println("Shutting down LoggingEventCache...");
+                }
+                LoggingEventCache.shutDown();
+            } catch (InterruptedException e) {
+                if (this.verbose) {
+                    System.out.println("InterruptedException during LoggingEventCache.shutDown");
+                    e.printStackTrace(System.out);
+                }
+            }
+        }));
+    }
+
+    public Log4j2Appender setVerbose(boolean verbose) {
+        this.verbose = verbose;
+        return this;
     }
 
     public void append(LogEvent logEvent) {
@@ -51,10 +67,10 @@ public class Log4j2Appender extends AbstractAppender {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        LOGGER.debug(String.format("Log4j2Appender says: %s", logEvent.getMessage().getFormattedMessage()));
+        if (this.verbose) {
+            System.out.println(String.format("Log4j2Appender says: %s", logEvent.getMessage().getFormattedMessage()));
+        }
     }
-
-
 
     Event mapToEvent(LogEvent event) {
         String message = null;

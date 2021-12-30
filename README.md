@@ -2,8 +2,8 @@
 
 ## IMPORTANT NOTE on log4j vulnerabilty: https://www.cisa.gov/news/2021/12/11/statement-cisa-director-easterly-log4j-vulnerability
 
-* log4j-s3-search Release **3.5.0** was built with **log4j2 2.17.0**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.17.0 **or higher** for your applications.
-* **PLEASE consider upgrading from Log4j 1.x to Log4j 2.x (particularly 2.17.0+)**. Log4j 1.x is deprecated, and there are vulnerabilities with it that nobody will fix.
+* log4j-s3-search Release **3.6.0** is built with **log4j2 2.17.1**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.17.1 (**or [higher](https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core)**, since I'm tired of updating this) for your applications.
+* If you're still using Log4j 1,x, **PLEASE consider upgrading to Log4j 2.x**. Log4j 1.x is deprecated, and _there are vulnerabilities with it that nobody will fix_. Once I get around to it, I may even drop **appender-log4j** from this repo.
 
 ![](misc/log4j-s3-search.png)
 
