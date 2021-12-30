@@ -359,10 +359,21 @@ public class Log4jAppender extends AppenderSkeleton
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
+                if (verbose) {
+                    System.out.println("Publishing staging log on shutdown...");
+                }
+                stagingLog.flushAndPublish(true);
+                try {
                     if (verbose) {
-                        System.out.println("Publishing staging log on shutdown...");
+                        System.out.println("Shutting down LoggingEventCache...");
                     }
-                    stagingLog.flushAndPublish(true);
+                    LoggingEventCache.shutDown();
+                } catch (InterruptedException e) {
+                    if (verbose) {
+                        System.out.println("InterruptedException during LoggingEventCache.shutDown");
+                        e.printStackTrace(System.out);
+                    }
+                }
                 }
             });
         }
