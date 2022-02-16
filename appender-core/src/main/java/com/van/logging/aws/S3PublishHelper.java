@@ -1,10 +1,7 @@
 package com.van.logging.aws;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.*;
 import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
@@ -41,6 +38,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
     private final IStorageDestinationAdjuster storageDestinationAdjuster;
     private final boolean isCompressionEnabled;
     private final boolean keyGzSuffix;
+    private final StorageClass storageClass;
 
     private volatile boolean bucketExists = false;
 
@@ -63,6 +61,7 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         this.cannedAcl = s3.getCannedAcl();
         this.isCompressionEnabled = s3.isCompressionEnabled();
         this.keyGzSuffix = s3.isKeyGzSuffixEnabled();
+        this.storageClass = s3.getStorageClass();
     }
 
     @Override
@@ -114,11 +113,11 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
                 metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
             }
 
-            PutObjectRequest por;
-            if (cannedAcl != null)
-                por = new PutObjectRequest(bucket, key, file).withCannedAcl(cannedAcl);
-            else
-                por = new PutObjectRequest(bucket, key, file);
+            final PutObjectRequest por = new PutObjectRequest(bucket, key, file);
+
+            if (cannedAcl != null) por.setCannedAcl(cannedAcl);
+            if (storageClass != null) por.setStorageClass(storageClass);
+
             por.setMetadata(metadata);
 
             PutObjectResult result = client.putObject(por);
