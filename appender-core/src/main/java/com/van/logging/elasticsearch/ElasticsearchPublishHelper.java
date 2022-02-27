@@ -1,6 +1,5 @@
 package com.van.logging.elasticsearch;
 
-import com.van.logging.IPublishHelper;
 import com.van.logging.PublishContext;
 import com.van.logging.utils.StringUtils;
 import org.apache.http.HttpHost;
@@ -13,11 +12,7 @@ import com.van.logging.Event;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
@@ -28,7 +23,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
 
     private ElasticsearchConfiguration configuration;
 
-    private final List<HttpHost> httpHosts = new ArrayList<>();
+    private HttpHost[] httpHosts;
     private RestHighLevelClient client;
     private BulkRequest bulkRequest;
     private int offset;
@@ -40,22 +35,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
     @Override
     public void initialize(ElasticsearchConfiguration configuration) {
         this.configuration = configuration;
-        this.configuration.iterateHosts((host, port) -> {
-            httpHosts.add(createHttpHost(host, port));
-        });
-    }
-
-    HttpHost createHttpHost(String host, int port) {
-        String scheme = null;
-        String hostName = host.toLowerCase().trim();
-        if (hostName.startsWith("http:") || hostName.startsWith("https:")) {
-            String[] schemeAndHostname = hostName.split(":");
-            if (schemeAndHostname.length >= 2) {
-                scheme = schemeAndHostname[0];
-                hostName = schemeAndHostname[1];
-            }
-        }
-        return new HttpHost(hostName, port, scheme);
+        this.httpHosts = this.configuration.getHttpHosts().toArray(HttpHost[]::new);
     }
 
     @Override
@@ -63,7 +43,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
         offset = 0;
         timeStamp = new Date();
 
-        RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[]{}));
+        RestClientBuilder builder = RestClient.builder(httpHosts);
         client = new RestHighLevelClient(builder);
 
         bulkRequest = new BulkRequest();
