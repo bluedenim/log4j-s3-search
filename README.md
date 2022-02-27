@@ -2,10 +2,13 @@
 
 ## IMPORTANT NOTE on log4j vulnerabilty: https://www.cisa.gov/news/2021/12/11/statement-cisa-director-easterly-log4j-vulnerability
 
-* log4j-s3-search Release **3.6.0** is built with **log4j2 2.17.1**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.17.1 (**or [higher](https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core)**, since I'm tired of updating this) for your applications.
-* If you're still using Log4j 1,x, **PLEASE consider upgrading to Log4j 2.x**. Log4j 1.x is deprecated, and _there are vulnerabilities with it that nobody will fix_. Once I get around to it, I may even drop **appender-log4j** from this repo.
+* Since release **3.6.0**, log4j-s3-search is built with **log4j2 2.17.1**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.17.1 (**or [higher](https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core)**, since I'm tired of updating this) for your applications.
+* If you're still using Log4j 1,x, **PLEASE consider upgrading to Log4j 2.x**. Log4j 1.x is deprecated, and _there are vulnerabilities with it that nobody will fix_. ~Once I get around to it, I may even drop~ As of release 4.0.0, I have removed **appender-log4j** from this repo.
 
-![](misc/log4j-s3-search.png)
+  *If you REALLY need to continue using Log4j, you may use release **3.7.0**. But really: upgrade to Log4j2 for your own sake.*
+
+![image](https://user-images.githubusercontent.com/1897208/155896919-552ab47e-98c9-4d54-9878-d0e145bb7153.png)
+
 
 A [Log4j appender](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Appender.html) implementation that 
 will collect log events into a staging buffer up to a configured size to then publish to external stores such as:
@@ -42,41 +45,24 @@ The project is broken up into several packages:
 * **appender-core** -- Log4j version-agnostic logic that deals with maintaining the log staging buffer and 
   publishing to external stores. *However, you typically do not need to explicitly depend on this since one of the
   following will.*
-* **appender-log4j** -- **Log4j 1.x** binding code that, together with **appender-core**, will allow client code 
-  to use the project with Log4j 1.x.
 * **appender-log4j2** -- **Log4j 2.x** binding code that, together with **appender-core**, will allow client code 
   to use the project with Log4j 2.x.
 
 
 ## Usage
-* Find out which version of Log4j your client program is using.
-  * If you're using **Log4j 1.x**, you should add **appender-log4j** into your dependencies. 
-  (See **appender-log4j-sample** from [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) 
-  for an example of how it's done.)
-  * If you're using **Log4j 2.x**, you should add **appender-log4j2** into your dependencies. 
+* Add **appender-log4j2** into your dependencies. 
   (See **appender-log4j2-sample** from [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) 
   for an example of how it's done.)
 
 ### Maven Dependencies
  
-For example, when coding with Log4j 1.x:
-
 Please **substitute in the latest version** in your case (so I don't have to keep updating this README.md).
 
 ```
 <dependency>
     <groupId>com.therealvan</groupId>
-    <artifactId>appender-log4j</artifactId>
-    <version>3.2.0</version>
-</dependency>
-```
-
-Similarly, when coding with Log4j 2.x:
-```
-<dependency>
-    <groupId>com.therealvan</groupId>
     <artifactId>appender-log4j2</artifactId>
-    <version>3.2.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 
@@ -84,13 +70,10 @@ Similarly, when coding with Log4j 2.x:
 
 _Please ignore the non-semver versions **2.0** and **0.3.0**_.
 
-
-
 ## Running the sample programs
 
 Please consult the [log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples) project for sample
 programs using this library for both Log4j and Log4j2.
-
 
 ## Configuration
 ### General
@@ -102,28 +85,37 @@ In addition to the typical appender configuration (such as layout, Threshold, et
     *  `production,webserver`
     *  `qa,database`
 
-_All the examples here are using the log4j.properties format for Log4j 1.x. See the module **appender-log4j2-sample** to find out how to do it for Log4j 2.x._
-
 A sample snippet from `log4j.properties` to publish whenever 2500 events are collected:
 ```
-log4j.appender.L4jAppender=com.van.logging.log4j.Log4jAppender
-log4j.appender.L4jAppender.layout=org.apache.log4j.PatternLayout
-log4j.appender.L4jAppender.layout.conversionPattern=%d %p [%t] %c %m
-log4j.appender.L4jAppender.Threshold=WARN
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+      <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m%n"/>
+      <verbose>false</verbose>
 
-log4j.appender.L4jAppender.tags=TEST,ONE,TWO
-log4j.appender.L4jAppender.stagingBufferSize=2500
+      <!-- Examples of optional tags to attach to entries (applicable only to SOLR & Elasticsearch)-->
+      <tags>TEST,ONE,TWO;THREE</tags>
+
+      <!-- Number of messages (lines of log) to buffer before publishing out -->
+      <stagingBufferSize>10</stagingBufferSize>
+
+      <s3Bucket>mybucket</s3Bucket>
+      <s3Path>logs/exampleApplication2/</s3Path>
+      <s3Region>us-west-2</s3Region>
+      ...
+      
 ```
 
 or, if a time-based publishing policy is desired (e.g. publish every 15 minutes):
 ```
-log4j.appender.L4jAppender=com.van.logging.log4j.Log4jAppender
-log4j.appender.L4jAppender.layout=org.apache.log4j.PatternLayout
-log4j.appender.L4jAppender.layout.conversionPattern=%d %p [%t] %c %m
-log4j.appender.L4jAppender.Threshold=WARN
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+      ...
 
-log4j.appender.L4jAppender.tags=TEST,ONE,TWO
-log4j.appender.L4jAppender.stagingBufferAge=15
+      <!-- Number of messages (lines of log) to buffer before publishing out -->
+      <stagingBufferAge>15</stagingBufferAge>
+      ...
 ```
 
 ### S3
@@ -157,15 +149,18 @@ the optional Log4j configuration:
 
 When these properties are present in the configuration, they *take precedence over* the default sources in the credential chain as described earlier.
 
-A sample snippet from `log4j.properties` (with the optional s3AwsKey and s3AwsSecret properties set):
+A sample snippet (with the optional s3AwsKey and s3AwsSecret properties set):
 ```
-log4j.appender.L4jAppender.s3Region=us-west-2
-log4j.appender.L4jAppender.s3Bucket=acmecorp
-log4j.appender.L4jAppender.s3Path=logs/myApplication/
-
-# Optional access and secret keys
-log4j.appender.L4jAppender.s3AwsKey=CMSADEFHASFHEUCBEOERUE
-log4j.appender.L4jAppender.s3AwsSecret=ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+        ...
+      <s3Bucket>mybucket</s3Bucket>
+      <s3Path>logs/exampleApplication2/</s3Path>
+      <s3Region>us-west-2</s3Region>
+      <s3AwsKey>CMSADEFHASFHEUCBEOERUE</s3AwsKey>
+      <s3AwsSecret>ASCNEJAERKE/SDJFHESNCFSKERTFSDFJESF</s3AwsSecret>
+      ....
 ```
 
 The final S3 key used in the bucket follows the format:
@@ -193,12 +188,16 @@ These properties (**please use your own values**) control how the logs will be s
 
 A sample snippet from `log4j.properties` (with the optional azureStorageConnectionString property set):
 ```
-log4j.appender.L4jAppender.azureBlobContainer=my-container
-log4j.appender.L4jAppender.azureBlobNamePrefix=logs/myApplication/
-
-# Optional
-log4j.appender.L4jAppender.azureBlobCompressionEnabled=false
-log4j.appender.L4jAppender.azureStorageConnectionString=DefaultEndpointsProtocol=https;AccountName=...;EndpointSuffix=core.windows.net
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+        ...
+        <azureBlobContainer>my-container</azureBlobContainer>
+        <azureBlobNamePrefix>logs/myApplication/</azureBlobNamePrefix>
+        
+        <!-- optional -->
+        <azureBlobCompressionEnabled>false</azureBlobCompressionEnabled>
+        <azureStorageConnectionString>DefaultEndpointsProtocol=https;AccountName=...;EndpointSuffix=core.windows.net</azureStorageConnectionString>
 ```
 
 Just as the case of S3, the final blob name used in the container follows the format:
@@ -239,11 +238,16 @@ to work without doing any specific authentication calls.
 
 A sample snippet from `log4j.properties`:
 ```
-log4j.appender.L4jAppender.gcpStorageBucket=my-bucket
-log4j.appender.L4jAppender.gcpStorageBlobNamePrefix=logs/myApplication/
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+        ...
+        <gcpStorageBucket>my-bucket</gcpStorageBucket>
+        <gcpStorageBlobNamePrefix>logs/myApplication/</gcpStorageBlobNamePrefix>
+        
+        <!-- optional -->
+        <gcpStorageCompressionEnabled>false</gcpStorageCompressionEnabled>
 
-# Optional
-log4j.appender.L4jAppender.gcpStorageCompressionEnabled=false
 ```
 
 Just as the other cases, the final blob name used in the bucket follows the format:
@@ -289,9 +293,13 @@ will be done at different times.
 There is only one property for Solr: the REST endpoint to the core/collection:
 * **solrUrl** -- the URL to core/collection
 
-A sample snippet from `log4j.properties`:
+A sample snippet:
 ```
-log4j.appender.S3Appender.solrUrl=http://localhost:8983/solr/log-events/
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+        ...
+        <solrUrl>http://localhost:8983/solr/log-events/</solrUrl>
 ```
 
 ### Elasticsearch
@@ -299,14 +307,18 @@ There are four properties for Elasticsearch, all but one are optional:
 * **elasticsearchCluster** -- the cluster name (default if "elasticsearch")
 * **elasticsearchIndex** -- the index in which to store the log data (default is "logindex")
 * **elasticsearchType** -- the type of a log data entry (default is "log")
-* **elasticsearchHosts** -- comma-delimited list of `host:port` values. There is no default; this property is *required*. 
+* **elasticsearchHosts** -- comma-delimited list of `[http:|https:]host:port` values. There is no default; this property is *required*. 
 * **elasticSearchPublishHelperClass** -- optional fully-qualified name of the class (on the runtime classpath, of course) implementing `IElasticsearchPublishHelper` that will perform publishing to Elasticsearch 
 
 ```
-log4j.appender.L4jAppender.elasticsearchCluster=elasticsearch
-log4j.appender.L4jAppender.elasticsearchIndex=logindex
-log4j.appender.L4jAppender.elasticsearchType=log
-log4j.appender.L4jAppender.elasticsearchHosts=localhost:9300
+<Configuration status="INFO">
+  <Appenders>
+    <Log4j2Appender name="Log4j2Appender">
+        ...
+        <elasticsearchCluster>elasticsearch</elasticsearchCluster>
+        <elasticsearchIndex>logindex</elasticsearchIndex>
+        <elasticsearchType>log</elasticsearchType>
+        <elasticsearchHosts>elasticsearchHosts=localhost:9300</elasticsearchHosts>
 ```
 
 ## Solr Integration
