@@ -200,6 +200,10 @@ public class Log4jAppender extends AppenderSkeleton
         getS3Configuration().setPathStyleAccess(Boolean.parseBoolean(pathStyleAccess));
     }
 
+    public void setS3StorageClass(String s3StorageClass) {
+        getS3Configuration().setStorageClass(s3StorageClass);
+    }
+
     // Azure blob properties
     ///////////////////////////////////////////////////////////////////////////
     private BlobConfiguration getBlobConfiguration() {
