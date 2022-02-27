@@ -85,7 +85,7 @@ In addition to the typical appender configuration (such as layout, Threshold, et
     *  `production,webserver`
     *  `qa,database`
 
-A sample snippet from `log4j.properties` to publish whenever 2500 events are collected:
+A sample snippet from a sample `log4j2.xml` to publish whenever 2500 events are collected:
 ```
 <Configuration status="INFO">
   <Appenders>
@@ -186,7 +186,6 @@ These properties (**please use your own values**) control how the logs will be s
 * **azureStorageConnectionString** -- optional value for the connection string for connecting to Azure. See note below.
 * **azureBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when `azureBlobCompressionEnabled` is enabled. (If `azureBlobCompressionEnabled` is not "true," this is ignored.)
 
-A sample snippet from `log4j.properties` (with the optional azureStorageConnectionString property set):
 ```
 <Configuration status="INFO">
   <Appenders>
@@ -236,7 +235,7 @@ variable `GOOGLE_APPLICATION_CREDENTIALS` to the full path to the file. This all
 [Store API](https://cloud.google.com/storage/docs/reference/libraries#client-libraries-install-java)
 to work without doing any specific authentication calls.
 
-A sample snippet from `log4j.properties`:
+A sample snippet from `log4j2.xml`:
 ```
 <Configuration status="INFO">
   <Appenders>
