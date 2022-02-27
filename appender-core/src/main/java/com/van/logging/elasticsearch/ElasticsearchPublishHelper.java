@@ -28,7 +28,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
 
     private ElasticsearchConfiguration configuration;
 
-    private final List<Node> nodes = new ArrayList<>();
+    private final List<HttpHost> httpHosts = new ArrayList<>();
     private RestHighLevelClient client;
     private BulkRequest bulkRequest;
     private int offset;
@@ -41,11 +41,11 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
     public void initialize(ElasticsearchConfiguration configuration) {
         this.configuration = configuration;
         this.configuration.iterateHosts((host, port) -> {
-            nodes.add(createNodeFromHost(host, port));
+            httpHosts.add(createHttpHost(host, port));
         });
     }
 
-    Node createNodeFromHost(String host, int port) {
+    HttpHost createHttpHost(String host, int port) {
         String scheme = null;
         String hostName = host.toLowerCase().trim();
         if (hostName.startsWith("http:") || hostName.startsWith("https:")) {
@@ -55,7 +55,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
                 hostName = schemeAndHostname[1];
             }
         }
-        return new Node(new HttpHost(hostName, port, scheme));
+        return new HttpHost(hostName, port, scheme);
     }
 
     @Override
@@ -63,20 +63,9 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
         offset = 0;
         timeStamp = new Date();
 
-        // The way RestClient.builder(Node... hosts) is designed requires hard-coding the list of hosts (great
-        // for demo programs but not for anything more serious).
-        // Because our host list is materialized from configuration as an array/list, we have to actually call
-        // RestClient.builder(Node... hosts) with an array via inflection. All this BS would not be necessary
-        // if they had just added a RestClient.builder(Node[] nodes) or RestClient.builder(Collection<Node> nodes).
-        try {
-            Method restClientBuilderMethod = RestClient.class.getDeclaredMethod("builder", Node[].class);
-            restClientBuilderMethod.setAccessible(true);
-            RestClientBuilder builder =
-                (RestClientBuilder)restClientBuilderMethod.invoke(null, new Object[]{nodes.toArray(new Node[0])});
-            client = new RestHighLevelClient(builder);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[]{}));
+        client = new RestHighLevelClient(builder);
+
         bulkRequest = new BulkRequest();
     }
 

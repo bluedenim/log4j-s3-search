@@ -1,7 +1,11 @@
 package com.van.logging.elasticsearch;
 
+import org.apache.http.HttpHost;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Configuration for Elasticsearch publisher
@@ -81,6 +85,19 @@ public class ElasticsearchConfiguration {
             }
             consumer.consume(hostName, port);
         }
+    }
+
+    public Stream<HttpHost> getHttpHosts() {
+        return hosts.stream().map((String hostString) -> {
+            String parts[] = hostString.split(":");
+            int port = 9300;
+            String hostName = parts[0].trim();
+            try {
+                port = Integer.parseInt(parts[1]);
+            } catch (Exception ex) {
+            }
+            return new HttpHost(hostName, port);
+        });
     }
 
     @Override
