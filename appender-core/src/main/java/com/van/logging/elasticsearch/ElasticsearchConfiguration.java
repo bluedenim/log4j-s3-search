@@ -1,10 +1,12 @@
 package com.van.logging.elasticsearch;
 
+import com.van.logging.utils.StringUtils;
 import org.apache.http.HttpHost;
 
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -13,10 +15,6 @@ import java.util.stream.Stream;
  * Created by vly on 11/26/2016.
  */
 public class ElasticsearchConfiguration {
-    public interface IHostConsumer {
-        void consume(String host, int port);
-    }
-
     private static final String DEFAULT_CLUSTERNAME = "elasticsearch";
     private static final String DEFAULT_INDEX = "logindex";
 
@@ -29,9 +27,6 @@ public class ElasticsearchConfiguration {
     private String type = DEFAULT_TYPE;
 
     private final List<String> hosts = new LinkedList<>();
-
-
-
 
     public ElasticsearchConfiguration() {
     }
@@ -69,35 +64,41 @@ public class ElasticsearchConfiguration {
         hosts.add(host);
     }
 
-    /**
-     * Iterate through all the host:port entries and call the supplied consumer with each.
-     *
-     * @param consumer a consumer of host and port for an Elasticsearch host entry
-     */
-    public void iterateHosts(IHostConsumer consumer) {
-        for (String host: hosts) {
-            String parts[] = host.split(":");
-            int port = 9300;
-            String hostName = parts[0].trim();
-            try {
-                port = Integer.parseInt(parts[1]);
-            } catch (Exception ex) {
-            }
-            consumer.consume(hostName, port);
-        }
-    }
-
     public Stream<HttpHost> getHttpHosts() {
         return hosts.stream().map((String hostString) -> {
-            String parts[] = hostString.split(":");
             int port = 9300;
-            String hostName = parts[0].trim();
+            String hostName = null;
+            String scheme = null;
+
             try {
-                port = Integer.parseInt(parts[1]);
-            } catch (Exception ex) {
+                if (StringUtils.isTruthy(hostString)) {
+                    if (hostString.startsWith("http://") || hostString.startsWith("https://")) {
+                        // The newer format of "scheme://host:port"
+                        URL parsedUrl = new URL(hostString);
+                        hostName = parsedUrl.getHost();
+                        port = parsedUrl.getPort();
+                        if (port < 0) {
+                            port = 9300;
+                        }
+                        scheme = parsedUrl.getProtocol();
+                    } else {
+                        // The older format of just "host:port"
+                        String parts[] = hostString.split(":");
+                        hostName = parts[0].trim();
+                        try {
+                            port = Integer.parseInt(parts[1]);
+                        } catch (Exception ex) {
+                        }
+                    }
+                    return new HttpHost(hostName, port, scheme);
+                }
+            } catch(Exception ex) {
+                System.err.println(
+                    String.format("Cannot parse host %s: %s", hostString, ex)
+                );
             }
-            return new HttpHost(hostName, port);
-        });
+            return null;
+        }).filter(Objects::nonNull);
     }
 
     @Override

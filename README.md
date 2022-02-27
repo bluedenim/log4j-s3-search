@@ -307,7 +307,11 @@ There are four properties for Elasticsearch, all but one are optional:
 * **elasticsearchCluster** -- the cluster name (default if "elasticsearch")
 * **elasticsearchIndex** -- the index in which to store the log data (default is "logindex")
 * **elasticsearchType** -- the type of a log data entry (default is "log")
-* **elasticsearchHosts** -- comma-delimited list of `[http:|https:]host:port` values. There is no default; this property is *required*. 
+* **elasticsearchHosts** -- comma-delimited list of `host:port` values. There is no default; 
+  this property is *required*. 
+
+  The scheme/protocol is `http://` by default, but you can override this by
+  explicitly including it in the value (e.g. `https://localhost:9200`).
 * **elasticSearchPublishHelperClass** -- optional fully-qualified name of the class (on the runtime classpath, of course) implementing `IElasticsearchPublishHelper` that will perform publishing to Elasticsearch 
 
 ```
