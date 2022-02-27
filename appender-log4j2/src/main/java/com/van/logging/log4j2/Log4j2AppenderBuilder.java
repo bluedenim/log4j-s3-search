@@ -79,6 +79,9 @@ public class Log4j2AppenderBuilder
     @PluginBuilderAttribute
     private boolean s3PathStyleAccess;
 
+    @PluginBuilderAttribute
+    private String s3StorageClass;
+
     // Azure blob properties
     @PluginBuilderAttribute
     private String azureStorageConnectionString;
@@ -191,6 +194,8 @@ public class Log4j2AppenderBuilder
                 );
             }
             config.setSseConfiguration(sseConfig);
+            config.setStorageClass(s3StorageClass);
+
             s3Config = Optional.of(config);
         }
         return s3Config;

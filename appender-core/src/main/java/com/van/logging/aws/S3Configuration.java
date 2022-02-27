@@ -3,6 +3,7 @@ package com.van.logging.aws;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.StorageClass;
 import com.van.logging.utils.StringUtils;
 
 /**
@@ -63,6 +64,8 @@ public class S3Configuration {
     private S3SSEConfiguration sseConfiguration = null;
 
     private CannedAccessControlList cannedAcl = null;
+
+    private StorageClass storageClass = null;
 
     public String getAccessKey() {
         return accessKey;
@@ -164,6 +167,19 @@ public class S3Configuration {
         this.keyGzSuffixEnabled = gzSuffix;
     }
 
+    public StorageClass getStorageClass() { return this.storageClass; }
+
+    /**
+     * Sets the storage class to use when creating the S3 PutObjectRequest. The value can be the
+     * "uppercase underscore" format (e.g. "STANDARD", "DEEP_ARCHIVE")
+     * or the StorageClass enum ordinal name (e.g. "Standard" or "Glacier").
+     * <br>
+     * If the value is <code>null</code>, then no storage class will be explicitly set.
+     *
+     * @param storageClassName the storage class name (e.g. "standard", "glacier")
+     */
+    public void setStorageClass(String storageClassName) { this.storageClass = resolveStorageClass(storageClassName); }
+
     /**
      * Best-effort to map a region name to an actual Region instance. The input
      * string can be either the public region name (e.g. "us-west-1") or the
@@ -191,6 +207,32 @@ public class S3Configuration {
         }
         return region;
     }
+
+    /**
+     * Best-effort to map a storage class name to an actual StorageClass instance. The input
+     * string can be either the public storage class value (e.g. "STANDARD") or the
+     * StorageClass enum ordinal name (e.g. "Standard").
+     *
+     * @param str the storage class name to map to a StorageClass
+     *
+     * @return the mapped StorageClass
+     *
+     * @throws IllegalArgumentException if the input name cannot be mapped to a
+     *  StorageClass.
+     */
+    static StorageClass resolveStorageClass(String str) {
+        if (StringUtils.isTruthy(str)) {
+            try {
+                return StorageClass.valueOf(str);
+            } catch (IllegalArgumentException ex) {
+                // Try to interpret as the public value (this is more expensive). If
+                // this fails, then just propagate the IllegalArgumentException out.
+                return StorageClass.fromValue(str);
+            }
+        }
+        return null;
+    }
+
 
     public String toString() {
         if (StringUtils.isTruthy(this.path)) {

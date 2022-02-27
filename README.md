@@ -181,6 +181,7 @@ Content configurations
 * **s3Compression** -- if set to "true," then contents will be GZIP'ed before publishing into S3
 * **s3KeyGzSuffixEnabled** -- if set to "true," then the s3 key will have a `.gz` suffix when `s3Compression` is enabled. (If `s3Compression` is not "true," this is ignored.)  
 * **s3SseKeyType** -- if set to "SSE_S3," then contents published will be flagged to use SSE-S3 encryption (see https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
+* **s3StorageClass** -- the S3 storage class associated with sent objects (e.g. "standard", "glacier"), if not set then "standard" storage class will be used as default (see https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html)
 
 ### Azure Blob
 These properties (**please use your own values**) control how the logs will be stored in Azure Blob Storage:
