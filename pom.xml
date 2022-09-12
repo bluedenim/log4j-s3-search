@@ -3,7 +3,7 @@
     <groupId>com.therealvan</groupId>
     <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.1.0-SNAPSHOT</version>
     <name>log4j-s3-search</name>
     <description>Parent POM for the log4j-s3-search project and used by appender-core, appender-log4j, and appender-log4j2 projects.</description>
     <url>https://github.com/bluedenim/log4j-s3-search</url>
@@ -70,10 +70,17 @@
                 <artifactId>solr-solrj</artifactId>
                 <version>8.11.1</version>
             </dependency>
+
             <dependency>
-                <groupId>org.elasticsearch.client</groupId>
-                <artifactId>elasticsearch-rest-high-level-client</artifactId>
-                <version>7.11.1</version>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>7.17.6</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.12.3</version>
             </dependency>
 
         </dependencies>
