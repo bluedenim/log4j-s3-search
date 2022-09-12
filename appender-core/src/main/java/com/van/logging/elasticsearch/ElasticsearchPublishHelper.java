@@ -7,13 +7,14 @@ import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.*;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import com.van.logging.Event;
+import org.elasticsearch.xcontent.XContentBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Date;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
+import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
 
 /**
  * Elasticsearch implementation of IPublishHelper to publish logs into Elasticsearch
