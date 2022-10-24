@@ -1,14 +1,16 @@
 <?xml version="1.0" ?>
 <schema name="S3 logger schema" version="1.1">
    <fieldtype name="string"  class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
-   <fieldtype name="tdate"  class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
-   <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+   <fieldtype name="pdates"  class="solr.DatePointField" />
+   <fieldType name="plongs" class="solr.LongPointField" />
+   <fieldType name="pdoubles" class="solr.DoublePointField" />
+   <fieldType name="booleans" class="solr.BoolField" />
    <!-- A text field with defaults appropriate for English: it
      tokenizes with StandardTokenizer, removes English stop words
      (lang/stopwords_en.txt), down cases, protects words from protwords.txt, and
      finally applies Porter's stemming.  The query time analyzer
      also applies synonyms from synonyms.txt. -->
-   <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
+   <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <!-- in this example, we will only use synonyms at query time
@@ -21,7 +23,6 @@
         <filter class="solr.StopFilterFactory"
             ignoreCase="true"
             words="lang/stopwords_en.txt"
-            enablePositionIncrements="true"
             />
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.EnglishPossessiveFilterFactory"/>
@@ -37,7 +38,6 @@
         <filter class="solr.StopFilterFactory"
             ignoreCase="true"
             words="lang/stopwords_en.txt"
-            enablePositionIncrements="true"
             />
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.EnglishPossessiveFilterFactory"/>
@@ -51,18 +51,18 @@
 
    <!-- general -->
    <field name="id"          type="string"   indexed="true"  stored="true"  multiValued="false" required="true"/>
-   <field name="timestamp"   type="tdate"    indexed="true"  stored="true"  multiValued="false" />
+   <field name="timestamp"   type="pdates"    indexed="true"  stored="true"  multiValued="false" />
    <field name="type"        type="string"   indexed="true"  stored="true"  multiValued="false" />
    <field name="hostname"    type="string"   indexed="true"  stored="true"  multiValued="false" />
-   <field name="offset"      type="long"     indexed="false" stored="true" />
+   <field name="offset"      type="plongs"     indexed="false" stored="true" />
    <field name="thread_name" type="string"   indexed="true"  stored="true"  multiValued="false" />
    <field name="logger"      type="string"   indexed="true"  stored="true"  multiValued="false" />
-   <field name="message"     type="text_en"  indexed="true"  stored="true"  multiValued="false" />
+   <field name="message"     type="text_general"  indexed="true"  stored="true"  multiValued="false" />
    <field name="tags"        type="string"   indexed="true"  stored="true"  multiValued="true" />
-   <field name="_version_"   type="long"     indexed="true"  stored="true" />
+   <field name="_version_"   type="plongs"     indexed="true"  stored="true" />
 
    <!--
-   <field name="catch_all"   type="text_en"  indexed="true"  stored="false"  multiValued="true" />
+   <field name="catch_all"   type="text_general"  indexed="true"  stored="false"  multiValued="true" />
    <copyField source="thread_name" dest="catch_all" />
    <copyField source="message" dest="catch_all" />
    -->
@@ -74,7 +74,4 @@
    <!--
    <defaultSearchField>catch_all</defaultSearchField>
    -->
-
-   <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
-   <solrQueryParser defaultOperator="OR"/>
 </schema>

@@ -1,0 +1,41 @@
+version: '3'
+services:
+  app:
+    build: .
+    volumes:
+      - ./:/code
+    networks:
+      - network
+    tty: true
+    stdin_open: true
+  solr:
+    image: solr:8.11.2
+    volumes:
+      - ${SOLR_CORE_DIR}:/var/solr
+    ports:
+      - "8983:8983"
+    expose:
+      - "8983"
+    networks:
+      - network
+    command:
+      - solr-precreate
+      - log4js3
+  elasticsearch:
+    image: elasticsearch:7.17.6
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    expose:
+      - "9200"
+      - "9300"
+    networks:
+      - network
+networks:
+  # Declare our private network.  We must declare one for the magic
+  # Docker DNS to work, but otherwise its default settings are fine.
+  network: {
+    driver: bridge
+  }
