@@ -85,7 +85,7 @@ In addition to the typical appender configuration (such as layout, Threshold, et
     *  `production,webserver`
     *  `qa,database`
 
-A sample snippet from a sample `log4j2.xml` to publish whenever 2500 events are collected:
+A sample snippet from a sample `log4j2.xml` to publish whenever 10 events are collected:
 ```
 <Configuration status="INFO">
   <Appenders>
