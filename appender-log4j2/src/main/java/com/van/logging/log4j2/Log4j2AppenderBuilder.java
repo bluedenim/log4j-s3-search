@@ -270,7 +270,7 @@ public class Log4j2AppenderBuilder
 
         getS3ConfigIfEnabled().ifPresent(config -> {
             if (verbose) {
-                System.out.println(String.format(
+                VansLogger.logger.info(String.format(
                     "Registering AWS S3 publish helper -> %s", config));
             }
             publisher.addHelper(new S3PublishHelper(config, pathAdjuster, verbose));
@@ -278,21 +278,21 @@ public class Log4j2AppenderBuilder
 
         getBlobConfigurationIfEnabled().ifPresent(config -> {
             if (verbose) {
-                System.out.println(String.format("Registering Azure Blob Storage publish helper -> %s", config));
+                VansLogger.logger.info(String.format("Registering Azure Blob Storage publish helper -> %s", config));
             }
             publisher.addHelper(new BlobPublishHelper(config, pathAdjuster, verbose));
         });
 
         getCloudStorageConfigurationIfEnabled().ifPresent(config -> {
             if (verbose) {
-                System.out.println(String.format("Registering Google Cloud Storage publish helper -> %s", config));
+                VansLogger.logger.info(String.format("Registering Google Cloud Storage publish helper -> %s", config));
             }
             publisher.addHelper(new CloudStoragePublishHelper(config, pathAdjuster, verbose));
         });
 
         getSolrConfigurationIfEnabled(solrUrl).ifPresent(config -> {
             if (verbose) {
-                System.out.println(String.format(
+                VansLogger.logger.info(String.format(
                     "Registering SOLR publish helper -> %s", config));
             }
             publisher.addHelper(new SolrPublishHelper(config.getUrl()));
@@ -300,7 +300,7 @@ public class Log4j2AppenderBuilder
 
         getElasticsearchConfigIfEnabled().ifPresent(config -> {
             if (verbose) {
-                System.out.println(String.format(
+                VansLogger.logger.info(String.format(
                     "Registering Elasticsearch publish helper -> %s", config));
             }
             IElasticsearchPublishHelper helper = ElasticsearchPublishHelper.getPublishHelper(
@@ -331,7 +331,7 @@ public class Log4j2AppenderBuilder
             monitor = new TimePeriodBasedBufferMonitor<Event>(stagingBufferAge);
         }
         if (verbose) {
-            System.out.println(String.format("Using cache monitor: %s", monitor.toString()));
+            VansLogger.logger.info(String.format("Using cache monitor: %s", monitor));
         }
         return monitor;
     }

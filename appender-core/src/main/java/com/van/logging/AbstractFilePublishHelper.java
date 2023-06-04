@@ -28,12 +28,12 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
             );
             outputWriter = new OutputStreamWriter(os);
             if (verbose) {
-                System.out.println(String.format("Collecting content into %s before uploading.", tempFile));
+                VansLogger.logger.debug(String.format("Collecting content into %s before uploading.", tempFile));
             }
 
         } catch (Exception ex) {
             if (verbose) {
-                ex.printStackTrace(System.out);
+                VansLogger.logger.error("Cannot start publish batch", ex);
             }
             throw new RuntimeException(String.format("Cannot start publishing: %s", ex.getMessage()), ex);
         }
@@ -45,7 +45,7 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
             outputWriter.write(event.getMessage());
         } catch (Exception ex) {
             if (verbose) {
-                ex.printStackTrace(System.out);
+                VansLogger.logger.error("Cannot publish batch", ex);
             }
             throw new RuntimeException(String.format("Cannot collect event %s: %s", event, ex.getMessage()), ex);
         }
@@ -61,7 +61,7 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
             publishFile(tempFile, context);
         } catch (Exception ex) {
             if (verbose) {
-                ex.printStackTrace(System.out);
+                VansLogger.logger.error("Cannot end publish batch", ex);
             }
             throw new RuntimeException(String.format("Cannot end publishing: %s", ex.getMessage()), ex);
         } finally {
@@ -82,7 +82,7 @@ public abstract class AbstractFilePublishHelper implements IPublishHelper<Event>
         Objects.requireNonNull(outputStream);
         if (compressEnabled) {
             if (verbose) {
-                System.out.println("Content will be compressed.");
+                VansLogger.logger.debug("Content will be compressed.");
             }
             return new GZIPOutputStream(outputStream);
         } else {

@@ -62,11 +62,11 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
                         try {
                             publisher.flushAndPublish();
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            VansLogger.logger.error("Cannot flush and publish", ex);
                         } finally {
                             long now = System.currentTimeMillis();
                             if (now - started > (periodInSeconds * 9 / 10)) {
-                                System.err.println(
+                                VansLogger.logger.warn(
                                     "Publish operation is approaching monitor period. Increase " +
                                     "period or risk compromising fixed rate.");
                             }
@@ -81,7 +81,7 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
     @Override
     public void shutDown() {
         if (this.verbose) {
-            System.out.println("TimePeriodBasedBufferMonitor: shutting down.");
+            VansLogger.logger.info("TimePeriodBasedBufferMonitor: shutting down.");
         }
         this.scheduledExecutorService.shutdownNow();
     }

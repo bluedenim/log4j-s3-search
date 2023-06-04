@@ -26,16 +26,18 @@ public class BufferPublisher<T> implements IBufferPublisher<T> {
 
     public PublishContext startPublish(String cacheName) {
         String namespacedCacheName = composeNamespacedCacheName(cacheName);
-		/* System.out.println(String.format("BEGIN publishing %s...",
-			namespacedCacheName)); */
+		if (VansLogger.logger.isDebugEnabled()) {
+            VansLogger.logger.debug(String.format("BEGIN publishing %s...", namespacedCacheName));
+        }
         PublishContext context = new PublishContext(namespacedCacheName,
             hostName, tags);
         for (IPublishHelper helper: helpers) {
             try {
                 helper.start(context);
             } catch (Throwable t) {
-                System.err.println(String.format("Cannot start publish with %s due to error: %s",
-                    helper, t.getMessage()));
+                VansLogger.logger.error(
+                    String.format("Cannot start publish with %s due to error", helper), t
+                );
             }
         }
         return context;
@@ -52,12 +54,11 @@ public class BufferPublisher<T> implements IBufferPublisher<T> {
             try {
                 helper.publish(context, sequence, event);
             } catch (Throwable t) {
-                System.err.println(String.format("Cannot publish with %s due to error: %s",
-                    helper, t.getMessage()));
+                VansLogger.logger.error(
+                    String.format("Cannot publish with %s due to error", helper), t
+                );
             }
         }
-        /* System.out.println(String.format("%d:%s", sequence,
-			layout.format(event))); */
     }
 
     public void endPublish(PublishContext context) {
@@ -65,12 +66,14 @@ public class BufferPublisher<T> implements IBufferPublisher<T> {
             try {
                 helper.end(context);
             } catch (Throwable t) {
-                System.err.println(String.format("Cannot end publish with %s due to error: %s",
-                    helper, t.getMessage()));
+                VansLogger.logger.error(
+                    String.format("Cannot end publish with %s due to error", helper), t
+                );
             }
         }
-		/* System.out.println(String.format("END publishing %s",
-			context.getCacheName())); */
+        if (VansLogger.logger.isDebugEnabled()) {
+            VansLogger.logger.debug(String.format("END publishing %s", context.getCacheName()));
+        }
     }
 
     /**

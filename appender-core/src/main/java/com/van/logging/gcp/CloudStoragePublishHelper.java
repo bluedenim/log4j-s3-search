@@ -5,6 +5,7 @@ import com.google.cloud.storage.*;
 import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
+import com.van.logging.VansLogger;
 import com.van.logging.utils.PublishHelperUtils;
 import com.van.logging.utils.StringUtils;
 
@@ -56,7 +57,7 @@ public class CloudStoragePublishHelper extends AbstractFilePublishHelper {
         );
         String blobName = getBlobName(context, path, configuration);
         if (this.verbose) {
-            System.out.println(String.format("Publishing %s to GCS blob (bucket=%s; blob=%s):",
+            VansLogger.logger.debug(String.format("Publishing %s to GCS blob (bucket=%s; blob=%s):",
                 file.getAbsolutePath(), bucketName, blobName));
         }
         BlobId blobId = BlobId.of(bucketName, blobName);

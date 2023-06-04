@@ -1,5 +1,6 @@
 package com.van.logging.solr;
 
+import com.van.logging.VansLogger;
 import com.van.logging.utils.StringUtils;
 
 import java.net.MalformedURLException;
@@ -23,7 +24,7 @@ public class SolrConfiguration {
             try {
                 this.url = new URL(solrUrl);
             } catch (MalformedURLException e) {
-                e.printStackTrace();
+                VansLogger.logger.error(String.format("Cannot set Solr URL to %s", solrUrl), e);
             }
         }
     }

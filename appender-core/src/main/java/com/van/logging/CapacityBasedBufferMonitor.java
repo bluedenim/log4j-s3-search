@@ -42,7 +42,7 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
             try {
                 cache.flushAndPublish();
             } catch (Exception ex) {
-                ex.printStackTrace();
+                VansLogger.logger.error("Cannot flush and publish", ex);
             }
         }
     }
@@ -50,7 +50,7 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
     @Override
     public void shutDown() {
         if (this.verbose) {
-            System.out.println("CapacityBasedBufferMonitor: shutting down.");
+            VansLogger.logger.info("CapacityBasedBufferMonitor: shutting down.");
         }
     }
 
