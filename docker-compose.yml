@@ -1,14 +1,16 @@
 version: '3'
+
+# This docker-compose.yml configures two services to run locally to support local instances of Solr and Elasticsearch
+# The instances can be used for development/testing.
+
+# To bring up the Solr server, for example, use `docker-compose up solr`. Similarly, to bring up the Elasticsearch
+# server, use `docker-compose up elasticsearch`. Or just `docker-compose up` to bring both up.
+
 services:
-  app:
-    build: .
-    volumes:
-      - ./:/code
-    networks:
-      - network
-    tty: true
-    stdin_open: true
   solr:
+    # To get the Solr container up, you need to set the environment variable SOLR_CORE_DIR to somewhere that has all the
+    # configuration files and folders set up. An example is misc/solr.
+    # See misc/solr/README.md for more information on how this is set up and how to use it.
     image: solr:8.11.2
     volumes:
       - ${SOLR_CORE_DIR}:/var/solr
@@ -22,6 +24,7 @@ services:
       - solr-precreate
       - log4js3
   elasticsearch:
+    # See misc/elasticsearch/README.md for more information on how this is set up and how to use it.
     image: elasticsearch:7.17.6
     environment:
       - discovery.type=single-node

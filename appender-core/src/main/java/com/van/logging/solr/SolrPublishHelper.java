@@ -19,7 +19,7 @@ import java.util.List;
  * @author vly
  *
  */
-public class SolrPublishHelper implements IPublishHelper<Event> {
+public class SolrPublishHelper implements IPublishHelper {
     private final SolrClient client;
 
     private int offset;

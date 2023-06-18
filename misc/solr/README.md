@@ -13,5 +13,7 @@ To use this:
   docker-compose up solr
   ```
 * The Solr server will be accessible at http://localhost:8983/solr/#/
+* The index `log4js3` is used. If you want to use a different index/core name, modify the `docker-compose.yml` file 
+  and also your log4j configuration file's `solrUrl`.
 * You can take a look at https://github.com/bluedenim/log4j-s3-search-samples/blob/master/appender-log4j2-sample/src/main/resources/log4j2.xml#L55-L56
   to see how to configure a program to send logs to it.

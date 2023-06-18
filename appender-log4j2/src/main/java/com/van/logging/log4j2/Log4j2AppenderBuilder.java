@@ -136,7 +136,7 @@ public class Log4j2AppenderBuilder
     public Log4j2Appender build() {
         try {
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
-            LoggingEventCache<Event> cache = new LoggingEventCache<>(
+            LoggingEventCache cache = new LoggingEventCache(
                 cacheName, createCacheMonitor(), createCachePublisher(), verbose);
             Log4j2Appender appender = new Log4j2Appender(
                 getName(), getFilter(), getLayout(),
@@ -261,11 +261,11 @@ public class Log4j2AppenderBuilder
         return Optional.ofNullable(config);
     }
 
-    IBufferPublisher<Event> createCachePublisher() throws UnknownHostException {
+    IBufferPublisher createCachePublisher() throws UnknownHostException {
 
         java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
         String hostName = addr.getHostName();
-        BufferPublisher<Event> publisher = new BufferPublisher<Event>(hostName, parseTags(tags));
+        BufferPublisher publisher = new BufferPublisher(hostName, parseTags(tags));
         PatternedPathAdjuster pathAdjuster = new PatternedPathAdjuster();
 
         getS3ConfigIfEnabled().ifPresent(config -> {
@@ -325,10 +325,10 @@ public class Log4j2AppenderBuilder
         return parsedTags.toArray(new String[] {});
     }
 
-    IBufferMonitor<Event> createCacheMonitor() {
-        IBufferMonitor<Event> monitor = new CapacityBasedBufferMonitor<Event>(stagingBufferSize, verbose);
+    IBufferMonitor createCacheMonitor() {
+        IBufferMonitor monitor = new CapacityBasedBufferMonitor(stagingBufferSize, verbose);
         if (0 < stagingBufferAge) {
-            monitor = new TimePeriodBasedBufferMonitor<Event>(stagingBufferAge);
+            monitor = new TimePeriodBasedBufferMonitor(stagingBufferAge);
         }
         if (verbose) {
             VansLogger.logger.info(String.format("Using cache monitor: %s", monitor));

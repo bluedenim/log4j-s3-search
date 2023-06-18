@@ -5,7 +5,7 @@ package com.van.logging;
  * the implemented policy. The {@link IFlushAndPublish#flushAndPublish()}
  * can be used by implementations to flush the queue.
  */
-public interface IBufferMonitor<T> {
+public interface IBufferMonitor {
     /**
      * A log event has just been added to the event buffer. Handlers
      * can decide to flush the buffer if the conditions are right.
@@ -13,7 +13,7 @@ public interface IBufferMonitor<T> {
      * @param event the event just added to the buffer.
      * @param flushAndPublisher the {@link IFlushAndPublish} to use to publish.
      */
-    void eventAdded(final T event, final IFlushAndPublish flushAndPublisher);
+    void eventAdded(final Event event, final IFlushAndPublish flushAndPublisher);
 
     /**
      * Shut down the monitor and clean up

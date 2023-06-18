@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author vly
  *
  */
-public class LoggingEventCache<T> implements IFlushAndPublish {
+public class LoggingEventCache implements IFlushAndPublish {
 
     public static final String PUBLISH_THREAD_NAME =
         "LoggingEventCache-publish-thread";
@@ -46,8 +46,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     private final AtomicReference<ObjectOutputStream> objectOutputStreamRef = new AtomicReference<>();
     private final AtomicInteger eventCount = new AtomicInteger();
 
-    private final IBufferMonitor<T> cacheMonitor;
-    private final IBufferPublisher<T> cachePublisher;
+    private final IBufferMonitor cacheMonitor;
+    private final IBufferPublisher cachePublisher;
     private final boolean verbose;
 
     private final AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
@@ -117,13 +117,13 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      * @throws Exception if errors occurred during instantiation
      * @throws IllegalStateException if there is already an instance of the class instantiated
      */
-    public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
-                             IBufferPublisher<T> cachePublisher) throws Exception {
+    public LoggingEventCache(String cacheName, IBufferMonitor cacheMonitor,
+                             IBufferPublisher cachePublisher) throws Exception {
         this(cacheName, cacheMonitor, cachePublisher, false);
     }
 
-    public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
-                             IBufferPublisher<T> cachePublisher,
+    public LoggingEventCache(String cacheName, IBufferMonitor cacheMonitor,
+                             IBufferPublisher cachePublisher,
                              boolean verbose) throws Exception {
         if (null == cacheName) {
             this.cacheName = DEFAULT_TEMP_FILE_PREFIX;
@@ -171,13 +171,11 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      *
      * @throws IOException if exceptions occurred while dealing with I/O
      */
-    public void add(T event) throws IOException {
-        LogEvent logEvent = (LogEvent)event;
-
+    public void add(Event event) throws IOException {
         // Internal logs should not be added to the cache
         // One reason is to reduce noise, but a bigger reason is to avoid potential infinite recursion if
         // there are errors in our code.
-        if (!logEvent.getLoggerName().equals(VansLogger.logger.getName())) {
+        if (!event.getSource().equals(VansLogger.logger.getName())) {
             synchronized (bufferLock) {
                 objectOutputStreamRef.get().writeObject(event);
                 eventCount.incrementAndGet();
@@ -207,7 +205,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
             try (FileInputStream fis = new FileInputStream(fileToPublish);
                  ObjectInputStream ois = new ObjectInputStream(fis)) {
                 for (int i = 0; i < eventCount.get(); i++) {
-                    cachePublisher.publish(context, i, (T) ois.readObject());
+                    cachePublisher.publish(context, i, (Event) ois.readObject());
                 }
                 cachePublisher.endPublish(context);
             } finally {
@@ -247,7 +245,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
             if (useCurrentThread) {
                 publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
             } else {
-                final LoggingEventCache<T> me = this;
+                final LoggingEventCache me = this;
                 // Fire off a thread to actually publish to the external stores. Publishing asynchronously will allow
                 // the main program to get back to business instead of blocking for the network and file IO.
                 ExecutorService executorService = executorServiceRef.get();

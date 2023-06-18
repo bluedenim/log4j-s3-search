@@ -6,7 +6,7 @@ import org.junit.Test;
 public class LoggingEventCacheTest {
     private static final String CACHE_NAME = "test-cache";
 
-    private static class PublisherStub implements IBufferPublisher<String> {
+    private static class PublisherStub implements IBufferPublisher {
 
         @Override
         public PublishContext startPublish(String cacheName) {
@@ -14,7 +14,7 @@ public class LoggingEventCacheTest {
         }
 
         @Override
-        public void publish(PublishContext context, int sequence, String event) {
+        public void publish(PublishContext context, int sequence, Event event) {
 
         }
 
@@ -24,11 +24,11 @@ public class LoggingEventCacheTest {
         }
     };
 
-    public static final class TestMonitor implements IBufferMonitor<String> {
+    public static final class TestMonitor implements IBufferMonitor {
         private boolean isShutdown = false;
 
         @Override
-        public void eventAdded(String event, IFlushAndPublish flushAndPublisher) {
+        public void eventAdded(Event event, IFlushAndPublish flushAndPublisher) {
 
         }
 
@@ -43,7 +43,7 @@ public class LoggingEventCacheTest {
     public void testShutdown() {
         final TestMonitor monitor = new TestMonitor();
         try {
-            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub(), true);
+            LoggingEventCache inst = new LoggingEventCache(CACHE_NAME, monitor, new PublisherStub(), true);
             LoggingEventCache.shutDown();
 
             Assert.assertTrue("Monitor is shut down when LoggingEventCache is shut down", monitor.isShutdown);
@@ -58,8 +58,8 @@ public class LoggingEventCacheTest {
         final TestMonitor monitor = new TestMonitor();
         final TestMonitor monitor2 = new TestMonitor();
         try {
-            LoggingEventCache<String> inst = new LoggingEventCache<>(CACHE_NAME, monitor, new PublisherStub(), true);
-            LoggingEventCache<String> inst2 = new LoggingEventCache<>(CACHE_NAME, monitor2, new PublisherStub(), true);
+            LoggingEventCache inst = new LoggingEventCache(CACHE_NAME, monitor, new PublisherStub(), true);
+            LoggingEventCache inst2 = new LoggingEventCache(CACHE_NAME, monitor2, new PublisherStub(), true);
 
             LoggingEventCache.shutDown();
 

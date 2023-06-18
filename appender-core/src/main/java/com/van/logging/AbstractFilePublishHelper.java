@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.Objects;
 import java.util.zip.GZIPOutputStream;
 
-public abstract class AbstractFilePublishHelper implements IPublishHelper<Event> {
+public abstract class AbstractFilePublishHelper implements IPublishHelper {
 
     private final boolean compressEnabled;
     protected final boolean verbose;

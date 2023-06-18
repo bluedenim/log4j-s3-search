@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This means that, if there were ever a relatively "quiet" period when there isn't at least
  * one event added to the cache, then nothing will be flushed and published.
  */
-public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
+public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor {
 
     private final ScheduledExecutorService scheduledExecutorService =
         Executors.newScheduledThreadPool(1);
@@ -50,7 +50,7 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor<T> {
     }
 
     @Override
-    public void eventAdded(final T event, final IFlushAndPublish publisher) {
+    public void eventAdded(final Event event, final IFlushAndPublish publisher) {
         if (!monitorStarted.getAndSet(true)) {
             TimeDurationTuple tuple = getSchedulingTimeDuration();
             scheduledExecutorService.scheduleAtFixedRate(

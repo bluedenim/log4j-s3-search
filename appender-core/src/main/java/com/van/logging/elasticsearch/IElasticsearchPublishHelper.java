@@ -8,7 +8,7 @@ import com.van.logging.IPublishHelper;
 /**
  * Interface for implementations of an IPublishHelper to publish events to Elasticsearch.
  */
-public interface IElasticsearchPublishHelper extends IPublishHelper<Event> {
+public interface IElasticsearchPublishHelper extends IPublishHelper {
 
     /**
      * Initialize the publish helper immediately after construction

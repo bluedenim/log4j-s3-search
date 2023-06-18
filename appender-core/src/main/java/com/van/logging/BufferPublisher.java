@@ -12,11 +12,11 @@ import java.util.List;
  * @author vly
  *
  */
-public class BufferPublisher<T> implements IBufferPublisher<T> {
+public class BufferPublisher implements IBufferPublisher {
     private final String hostName;
     private final String[] tags;
 
-    private List<IPublishHelper<T>> helpers =
+    private List<IPublishHelper> helpers =
         new LinkedList<>();
 
     public BufferPublisher(String hostName, String[] tags) {
@@ -49,8 +49,8 @@ public class BufferPublisher<T> implements IBufferPublisher<T> {
             hostName, rawCacheName);
     }
 
-    public void publish(PublishContext context, int sequence, T event) {
-        for (IPublishHelper<T> helper: helpers) {
+    public void publish(PublishContext context, int sequence, Event event) {
+        for (IPublishHelper helper: helpers) {
             try {
                 helper.publish(context, sequence, event);
             } catch (Throwable t) {
@@ -82,7 +82,7 @@ public class BufferPublisher<T> implements IBufferPublisher<T> {
      *
      * @param helper helper to add to the list
      */
-    public void addHelper(IPublishHelper<T> helper) {
+    public void addHelper(IPublishHelper helper) {
         helpers.add(helper);
     }
 }

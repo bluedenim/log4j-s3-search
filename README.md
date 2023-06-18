@@ -367,3 +367,29 @@ document to the S3 batch from which the corresponding log event can be found.
 String id = solrDoc.getFieldValue("id").toString();
 String s3Key = id.substring(0, id.indexOf("-"));
 ```
+
+## Logging from log4j-s3-search
+The appender and components of this library also logs events under the logger named "`com.van.logging.VansLogger`."
+To prevent logs of this logger from polluting the clients' logs, these logs will be ignored by the code 
+(`LoggingEventCache`) when forwarding to various log publishers.
+
+To see these logs (e.g. to debug), you can add a logger config to dump to console (or any other appender):
+```
+  <Appenders>
+    <Console name="ConsoleAppender" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss,SSS} [%t] %-5p %c{36} - %m%n"/>
+    </Console>
+    ...
+  </Appenders>
+  
+  <Loggers>
+    <Logger name="com.van.logging" level="debug" additivity="false">
+      <AppenderRef ref="ConsoleAppender" />
+    </Logger>
+    ...
+  </Loggers>
+  ....
+```
+
+An example of this can be seen in the example repo 
+[log4j-s3-search-samples](https://github.com/bluedenim/log4j-s3-search-samples/blob/master/appender-log4j2-sample/src/main/resources/log4j2.xml#L73-L75).

@@ -19,7 +19,7 @@ import java.util.Objects;
 @Plugin(name = "Log4j2Appender", category = "Core", elementType = "appender")
 public class Log4j2Appender extends AbstractAppender {
 
-    private final LoggingEventCache<Event> eventCache;
+    private final LoggingEventCache eventCache;
     private boolean verbose = false;
 
     @PluginBuilderFactory
@@ -32,7 +32,7 @@ public class Log4j2Appender extends AbstractAppender {
         Filter filter,
         Layout<? extends Serializable> layout,
         boolean ignoreExceptions,
-        LoggingEventCache<Event> eventCache
+        LoggingEventCache eventCache
     ) {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
