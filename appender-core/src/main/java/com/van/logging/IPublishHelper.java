@@ -7,7 +7,7 @@ package com.van.logging;
  * @author vly
  *
  */
-public interface IPublishHelper<T> {
+public interface IPublishHelper {
     /**
      * A publish batch is starting.  This is a good place to (re)initialize
      * a buffer.
@@ -26,7 +26,7 @@ public interface IPublishHelper<T> {
      * @param sequence counter of the sequence of this event in the batch
      * @param event the log event
      */
-    void publish(PublishContext context, int sequence, T event);
+    void publish(PublishContext context, int sequence, Event event);
 
     /**
      * A publish batch has ended.  Implementations should conclude a batch

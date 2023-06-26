@@ -6,6 +6,7 @@ import com.microsoft.azure.storage.blob.*;
 import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
+import com.van.logging.VansLogger;
 import com.van.logging.utils.PublishHelperUtils;
 import com.van.logging.utils.StringUtils;
 
@@ -62,7 +63,7 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
         );
         String blobName = getBlobName(context, path, blobConfiguration);
         if (this.verbose) {
-            System.out.println(String.format("Publishing %s to Azure blob (container=%s; blob=%s):",
+            VansLogger.logger.debug(String.format("Publishing %s to Azure blob (container=%s; blob=%s):",
                 file.getAbsolutePath(), blobConfiguration.getContainerName(), blobName));
         }
 
@@ -74,7 +75,7 @@ public class BlobPublishHelper extends AbstractFilePublishHelper {
         }
         blob.uploadFromFile(file.getAbsolutePath());
         if (this.verbose) {
-            System.out.println(String.format("Publishing to Azure blob %s done.", blobName));
+            VansLogger.logger.debug(String.format("Publishing to Azure blob %s done.", blobName));
         }
     }
 }

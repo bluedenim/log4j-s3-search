@@ -6,7 +6,7 @@ package com.van.logging;
  * @author vly
  *
  */
-public interface IBufferPublisher<T> {
+public interface IBufferPublisher {
 
     /**
      * Start a batch of events with the given name.  Implementations should
@@ -27,7 +27,7 @@ public interface IBufferPublisher<T> {
      * @param event the logging event
      */
     void publish(final PublishContext context, final int sequence,
-                 final T event);
+                 final Event event);
 
     /**
      * Concludes a publish batch.  Implementations should submit/commit

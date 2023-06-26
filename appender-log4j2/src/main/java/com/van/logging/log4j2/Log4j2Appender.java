@@ -2,6 +2,7 @@ package com.van.logging.log4j2;
 
 import com.van.logging.Event;
 import com.van.logging.LoggingEventCache;
+import com.van.logging.VansLogger;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -18,7 +19,7 @@ import java.util.Objects;
 @Plugin(name = "Log4j2Appender", category = "Core", elementType = "appender")
 public class Log4j2Appender extends AbstractAppender {
 
-    private final LoggingEventCache<Event> eventCache;
+    private final LoggingEventCache eventCache;
     private boolean verbose = false;
 
     @PluginBuilderFactory
@@ -31,7 +32,7 @@ public class Log4j2Appender extends AbstractAppender {
         Filter filter,
         Layout<? extends Serializable> layout,
         boolean ignoreExceptions,
-        LoggingEventCache<Event> eventCache
+        LoggingEventCache eventCache
     ) {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
@@ -39,18 +40,17 @@ public class Log4j2Appender extends AbstractAppender {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (this.verbose) {
-                System.out.println("Publishing staging log on shutdown...");
+                VansLogger.logger.info("Publishing staging log on shutdown...");
             }
             eventCache.flushAndPublish(true);
             try {
                 if (this.verbose) {
-                    System.out.println("Shutting down LoggingEventCache...");
+                    VansLogger.logger.info("Shutting down LoggingEventCache...");
                 }
                 LoggingEventCache.shutDown();
             } catch (InterruptedException e) {
                 if (this.verbose) {
-                    System.out.println("InterruptedException during LoggingEventCache.shutDown");
-                    e.printStackTrace(System.out);
+                    VansLogger.logger.error("InterruptedException during LoggingEventCache.shutDown", e);
                 }
             }
         }));
@@ -65,10 +65,12 @@ public class Log4j2Appender extends AbstractAppender {
         try {
             eventCache.add(mapToEvent(logEvent));
         } catch (Exception ex) {
-            ex.printStackTrace();
+            VansLogger.logger.error("Cannot append to event cache", ex);
         }
         if (this.verbose) {
-            System.out.println(String.format("Log4j2Appender says: %s", logEvent.getMessage().getFormattedMessage()));
+            VansLogger.logger.info(
+                String.format("Log4j2Appender says: %s", logEvent.getMessage().getFormattedMessage())
+            );
         }
     }
 

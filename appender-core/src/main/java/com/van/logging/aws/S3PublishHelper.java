@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.*;
 import com.van.logging.AbstractFilePublishHelper;
 import com.van.logging.IStorageDestinationAdjuster;
 import com.van.logging.PublishContext;
+import com.van.logging.VansLogger;
 import com.van.logging.utils.PublishHelperUtils;
 import com.van.logging.utils.StringUtils;
 import org.apache.http.entity.ContentType;
@@ -99,11 +100,13 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
         );
         String key = getKey(context, path, isCompressionEnabled, keyGzSuffix);
         if (this.verbose) {
-            System.out.println(String.format("Publishing to S3 (bucket=%s; key=%s):", bucket, key));
+            VansLogger.logger.debug(String.format("Publishing to S3 (bucket=%s; key=%s):", bucket, key));
         }
 
         try {
-            // System.out.println(String.format("Publishing content of %s to S3.", tempFile));
+            if (VansLogger.logger.isDebugEnabled()) {
+                VansLogger.logger.debug(String.format("Publishing content of %s to S3.", file));
+            }
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(file.length());
             metadata.setContentType(ContentType.DEFAULT_BINARY.getMimeType());
@@ -121,7 +124,9 @@ public class S3PublishHelper extends AbstractFilePublishHelper {
             por.setMetadata(metadata);
 
             PutObjectResult result = client.putObject(por);
-            // System.out.println(String.format("Content MD5: %s", result.getContentMd5()));
+            if (VansLogger.logger.isDebugEnabled()) {
+                VansLogger.logger.debug(String.format("Content MD5: %s", result.getContentMd5()));
+            }
         } catch (Exception ex) {
             throw new RuntimeException(String.format("Cannot publish to S3: %s", ex.getMessage()), ex);
         }

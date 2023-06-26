@@ -1,6 +1,7 @@
 package com.van.logging.elasticsearch;
 
 import com.van.logging.PublishContext;
+import com.van.logging.VansLogger;
 import com.van.logging.utils.StringUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -69,7 +70,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
             bulkRequest.add(new IndexRequest(configuration.getIndex()).id(id).source(contentBuilder));
             offset++;
         } catch (Exception ex) {
-            System.err.printf("Cannot publish event: %s%n", ex.getMessage());
+            VansLogger.logger.error("Cannot publish event", ex);
         }
     }
 
@@ -79,11 +80,11 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
             if ((null != client) && (null != bulkRequest)) {
                 BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);
                 if (response.hasFailures()) {
-                    System.err.println("Elasticsearch publish failures: " + response.buildFailureMessage());
+                    VansLogger.logger.error("Elasticsearch publish failures: " + response.buildFailureMessage());
                 }
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            VansLogger.logger.error("Cannot end publish batch", ex);
         } finally {
             try {
                 if (null != client) {
@@ -91,7 +92,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
                 }
                 bulkRequest = null;
             } catch (IOException e) {
-                e.printStackTrace();
+                VansLogger.logger.error("Error closing client", e);
             }
         }
     }
@@ -105,7 +106,7 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
         String publishHelperNameSpec, ClassLoader classLoader, boolean verbose) {
         ElasticsearchPublishHelper helper = null;
         if (StringUtils.isTruthy(publishHelperNameSpec)) {
-            System.out.printf("Attempting to instantiate %s%n", publishHelperNameSpec);
+            VansLogger.logger.info(String.format("Instantiating %s", publishHelperNameSpec));
             try {
                 Class<ElasticsearchPublishHelper> cls;
                 cls = (Class<ElasticsearchPublishHelper>)classLoader.loadClass(
@@ -114,18 +115,20 @@ public class ElasticsearchPublishHelper implements IElasticsearchPublishHelper {
                 Constructor<ElasticsearchPublishHelper> ctor = cls.getConstructor();
                 helper = ctor.newInstance();
                 if (verbose) {
-                    System.out.printf(
-                        "Successfully registered %s as Elasticsearch publish helper%n", publishHelperNameSpec
+                    VansLogger.logger.info(
+                        String.format(
+                            "Successfully registered %s as Elasticsearch publish helper", publishHelperNameSpec
+                        )
                     );
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                VansLogger.logger.error(String.format("Cannot set up %s", publishHelperNameSpec), ex);
             }
         }
 
         if (null == helper) {
             if (verbose) {
-                System.out.printf("Instantiating the default ElasticsearchPublishHelper%n");
+                VansLogger.logger.info("Instantiating the default ElasticsearchPublishHelper");
             }
             helper = new ElasticsearchPublishHelper();
         }

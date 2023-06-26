@@ -4,7 +4,7 @@ package com.van.logging;
  * Implementation of {@link IBufferMonitor} that flushes the cache when its capacity
  * reaches a limit.
  */
-public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
+public class CapacityBasedBufferMonitor implements IBufferMonitor {
 
     private final int cacheLimit;
     private final Object countGuard = new Object();
@@ -30,7 +30,7 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
     }
 
     @Override
-    public void eventAdded(final T event, final IFlushAndPublish cache) {
+    public void eventAdded(final Event event, final IFlushAndPublish cache) {
         boolean flush = false;
         synchronized (countGuard) {
             if (++count >= cacheLimit) {
@@ -42,7 +42,7 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
             try {
                 cache.flushAndPublish();
             } catch (Exception ex) {
-                ex.printStackTrace();
+                VansLogger.logger.error("Cannot flush and publish", ex);
             }
         }
     }
@@ -50,7 +50,7 @@ public class CapacityBasedBufferMonitor<T> implements IBufferMonitor<T> {
     @Override
     public void shutDown() {
         if (this.verbose) {
-            System.out.println("CapacityBasedBufferMonitor: shutting down.");
+            VansLogger.logger.info("CapacityBasedBufferMonitor: shutting down.");
         }
     }
 

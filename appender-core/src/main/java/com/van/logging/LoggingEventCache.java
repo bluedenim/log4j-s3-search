@@ -1,5 +1,7 @@
 package com.van.logging;
 
+import org.apache.logging.log4j.core.LogEvent;
+
 import java.io.*;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -24,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author vly
  *
  */
-public class LoggingEventCache<T> implements IFlushAndPublish {
+public class LoggingEventCache implements IFlushAndPublish {
 
     public static final String PUBLISH_THREAD_NAME =
         "LoggingEventCache-publish-thread";
@@ -44,8 +46,8 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
     private final AtomicReference<ObjectOutputStream> objectOutputStreamRef = new AtomicReference<>();
     private final AtomicInteger eventCount = new AtomicInteger();
 
-    private final IBufferMonitor<T> cacheMonitor;
-    private final IBufferPublisher<T> cachePublisher;
+    private final IBufferMonitor cacheMonitor;
+    private final IBufferPublisher cachePublisher;
     private final boolean verbose;
 
     private final AtomicReference<ExecutorService> executorServiceRef = new AtomicReference<>(null);
@@ -69,7 +71,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                     (ExecutorService) instance.executorServiceRef.getAndSet(null);
                 if (null != executorService) {
                     if (instance.verbose) {
-                        System.out.println(String.format("LoggingEventCache %s: shutting down", instance));
+                        VansLogger.logger.info(String.format("LoggingEventCache %s: shutting down", instance));
                     }
                     executorService.shutdown();
                     boolean terminated = executorService.awaitTermination(
@@ -77,7 +79,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                         TimeUnit.SECONDS
                     );
                     if (instance.verbose) {
-                        System.out.println(String.format(
+                        VansLogger.logger.info(String.format(
                             "LoggingEventCache: Executor service terminated within timeout: %s", terminated
                         ));
                     }
@@ -88,7 +90,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                     instance.cacheMonitor.shutDown();
                 }
             } catch (Exception ex) {
-                System.err.println(String.format("LoggingEventCache: error shutting down %s\n", instance));
+                VansLogger.logger.error(String.format("LoggingEventCache: error shutting down %s", instance), ex);
             } finally {
                 instance = instances.poll();
             }
@@ -115,13 +117,13 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      * @throws Exception if errors occurred during instantiation
      * @throws IllegalStateException if there is already an instance of the class instantiated
      */
-    public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
-                             IBufferPublisher<T> cachePublisher) throws Exception {
+    public LoggingEventCache(String cacheName, IBufferMonitor cacheMonitor,
+                             IBufferPublisher cachePublisher) throws Exception {
         this(cacheName, cacheMonitor, cachePublisher, false);
     }
 
-    public LoggingEventCache(String cacheName, IBufferMonitor<T> cacheMonitor,
-                             IBufferPublisher<T> cachePublisher,
+    public LoggingEventCache(String cacheName, IBufferMonitor cacheMonitor,
+                             IBufferPublisher cachePublisher,
                              boolean verbose) throws Exception {
         if (null == cacheName) {
             this.cacheName = DEFAULT_TEMP_FILE_PREFIX;
@@ -134,11 +136,11 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
 
         synchronized(bufferLock) {
             tempBufferFile = File.createTempFile(this.cacheName, null);
-            /*
-            System.out.println(
-                String.format("Creating temporary file for event cache: %s",
-                    tempBufferFile));
-           */
+            if (VansLogger.logger.isDebugEnabled()) {
+                VansLogger.logger.debug(
+                    String.format("Creating temporary file for event cache: %s", tempBufferFile)
+                );
+            }
            this.objectOutputStreamRef.set(
                new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
            this.eventCount.set(0);
@@ -169,12 +171,17 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
      *
      * @throws IOException if exceptions occurred while dealing with I/O
      */
-    public void add(T event) throws IOException {
-        synchronized (bufferLock) {
-            objectOutputStreamRef.get().writeObject(event);
-            eventCount.incrementAndGet();
+    public void add(Event event) throws IOException {
+        // Internal logs should not be added to the cache
+        // One reason is to reduce noise, but a bigger reason is to avoid potential infinite recursion if
+        // there are errors in our code.
+        if (!event.getSource().equals(VansLogger.logger.getName())) {
+            synchronized (bufferLock) {
+                objectOutputStreamRef.get().writeObject(event);
+                eventCount.incrementAndGet();
+            }
+            cacheMonitor.eventAdded(event, this);
         }
-        cacheMonitor.eventAdded(event, this);
     }
 
     @Override
@@ -192,11 +199,13 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
             PublishContext context = cachePublisher.startPublish(cacheName);
             File fileToPublish = fileToPublishRef.get();
 
-            // System.out.println(String.format("Publishing from file: %s", tempFile));
+            if (VansLogger.logger.isDebugEnabled()) {
+                VansLogger.logger.debug(String.format("Publishing from file: %s", fileToPublish.getAbsolutePath()));
+            }
             try (FileInputStream fis = new FileInputStream(fileToPublish);
                  ObjectInputStream ois = new ObjectInputStream(fis)) {
                 for (int i = 0; i < eventCount.get(); i++) {
-                    cachePublisher.publish(context, i, (T) ois.readObject());
+                    cachePublisher.publish(context, i, (Event) ois.readObject());
                 }
                 cachePublisher.endPublish(context);
             } finally {
@@ -206,10 +215,9 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 }
             }
         } catch (Throwable t) {
-            System.err.println(
-                String.format("Error while publishing cache from publishing thread: %s", t.getMessage())
+            VansLogger.logger.error(
+                String.format("Error while publishing cache from publishing thread: %s", t.getMessage()), t
             );
-            t.printStackTrace();
         }
     }
 
@@ -225,7 +233,11 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 eventCountInPublishFile.set(eventCount.get());
 
                 tempBufferFile = File.createTempFile(cacheName, null);
-                // System.out.println(String.format("Creating temporary file for event cache: %s", tempBufferFile));
+                if (VansLogger.logger.isDebugEnabled()) {
+                    VansLogger.logger.debug(
+                        String.format("Creating temporary file for event cache: %s", tempBufferFile)
+                    );
+                }
                 objectOutputStreamRef.set(new ObjectOutputStream(new FileOutputStream(tempBufferFile)));
                 eventCount.set(0);
             }
@@ -233,7 +245,7 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
             if (useCurrentThread) {
                 publishEventsFromFile(fileToPublishRef, eventCountInPublishFile);
             } else {
-                final LoggingEventCache<T> me = this;
+                final LoggingEventCache me = this;
                 // Fire off a thread to actually publish to the external stores. Publishing asynchronously will allow
                 // the main program to get back to business instead of blocking for the network and file IO.
                 ExecutorService executorService = executorServiceRef.get();
@@ -247,10 +259,9 @@ public class LoggingEventCache<T> implements IFlushAndPublish {
                 }
             }
         } catch (RejectedExecutionException ex) {
-            System.err.println("ExecutorService refused submitted task. Was shutDown() called?");
+            VansLogger.logger.error("ExecutorService refused submitted task. Was shutDown() called?", ex);
         } catch (Throwable t) {
-            System.err.println(String.format("Error while publishing cache: %s", t.getMessage()));
-            t.printStackTrace();
+            VansLogger.logger.error(String.format("Error while publishing cache: %s", t.getMessage()), t);
             success = false;
         }
         return CompletableFuture.completedFuture(success);
