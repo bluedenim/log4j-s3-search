@@ -182,7 +182,7 @@ public class Log4j2AppenderBuilder
                 try {
                     config.setCannedAclFromValue(s3CannedAcl);
                 } catch (IllegalArgumentException ex) {
-                    System.err.println(String.format("Ignoring unrecognized canned ACL value %s", s3CannedAcl));
+                    VansLogger.logger.warn(String.format("Ignoring unrecognized canned ACL value %s", s3CannedAcl));
                 }
             }
 

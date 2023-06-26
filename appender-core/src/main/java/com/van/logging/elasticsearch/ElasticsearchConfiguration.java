@@ -1,5 +1,6 @@
 package com.van.logging.elasticsearch;
 
+import com.van.logging.VansLogger;
 import com.van.logging.utils.StringUtils;
 import org.apache.http.HttpHost;
 
@@ -93,7 +94,7 @@ public class ElasticsearchConfiguration {
                     return new HttpHost(hostName, port, scheme);
                 }
             } catch(Exception ex) {
-                System.err.println(
+                VansLogger.logger.error(
                     String.format("Cannot parse host %s: %s", hostString, ex)
                 );
             }
