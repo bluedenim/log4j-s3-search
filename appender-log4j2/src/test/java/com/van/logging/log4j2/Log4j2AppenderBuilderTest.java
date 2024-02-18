@@ -1,12 +1,14 @@
 package com.van.logging.log4j2;
 
+import com.van.logging.IBufferPublisher;
+import com.van.logging.PublishContext;
 import com.van.logging.aws.S3Configuration;
 import junit.framework.TestCase;
 
 import java.lang.reflect.Field;
+import java.net.UnknownHostException;
 import java.util.Optional;
 
-import static org.junit.Assert.assertTrue;
 
 public class Log4j2AppenderBuilderTest extends TestCase {
 
@@ -57,5 +59,48 @@ public class Log4j2AppenderBuilderTest extends TestCase {
         maybeS3Config.ifPresent((s3Configuration -> {
             assertFalse(s3Configuration.isCompressionEnabled());
         }));
+    }
+
+    public void testCreatePublisherWithHostNameConfig() {
+        Log4j2AppenderBuilder builder = new Log4j2AppenderBuilder();
+        Class<? extends Log4j2AppenderBuilder> clz = builder.getClass();
+        String testHostName = "TESTHOSTNAME";
+
+        try {
+            Field field = clz.getDeclaredField("hostName");
+            field.setAccessible(true);
+            field.set(builder, testHostName);
+        } catch(ReflectiveOperationException e) {
+            fail(e.getMessage());
+        }
+        PublishContext context = null;
+        try {
+            IBufferPublisher publisher = builder.createCachePublisher();
+            context = publisher.startPublish("CACHENAME");
+        } catch (UnknownHostException e) {
+            fail(e.getMessage());
+        }
+        assertEquals(testHostName, context.getHostName());
+    }
+
+    public void testCreatePublisherWithDefaultHostName() {
+        Log4j2AppenderBuilder builder = new Log4j2AppenderBuilder();
+        PublishContext context = null;
+
+        java.net.InetAddress addr = null;
+        try {
+            addr = java.net.InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            fail(e.getMessage());
+        }
+        String hostName = addr.getHostName();
+
+        try {
+            IBufferPublisher publisher = builder.createCachePublisher();
+            context = publisher.startPublish("CACHENAME");
+        } catch (UnknownHostException e) {
+            fail(e.getMessage());
+        }
+        assertEquals(hostName, context.getHostName());
     }
 }

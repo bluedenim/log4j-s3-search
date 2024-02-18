@@ -34,10 +34,13 @@ public class Log4j2AppenderBuilder
     private String tags;
 
     @PluginBuilderAttribute
-    private int stagingBufferSize = 25;
+    private int stagingBufferSize = 2000;
 
     @PluginBuilderAttribute
     private int stagingBufferAge = 0;
+
+    @PluginBuilderAttribute
+    private String hostName;
 
     // S3 properties
     @PluginBuilderAttribute
@@ -262,10 +265,13 @@ public class Log4j2AppenderBuilder
     }
 
     IBufferPublisher createCachePublisher() throws UnknownHostException {
-
-        java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
-        String hostName = addr.getHostName();
-        BufferPublisher publisher = new BufferPublisher(hostName, parseTags(tags));
+        // Use the configured host name if any.
+        String hostNameForPublisher = this.hostName;
+        if (!StringUtils.isTruthy(hostNameForPublisher)) {
+            java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+            hostNameForPublisher = addr.getHostName();
+        }
+        BufferPublisher publisher = new BufferPublisher(hostNameForPublisher, parseTags(tags));
         PatternedPathAdjuster pathAdjuster = new PatternedPathAdjuster();
 
         getS3ConfigIfEnabled().ifPresent(config -> {

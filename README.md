@@ -1,11 +1,9 @@
 # log4j-s3-search 
 
-## IMPORTANT NOTE on log4j vulnerabilty: https://www.cisa.gov/news/2021/12/11/statement-cisa-director-easterly-log4j-vulnerability
-
-* Since release **3.6.0**, log4j-s3-search is built with **log4j2 2.17.1**, addressing recent vulnerabilities (see above). You are **strongly advised** to also switch to Log4j2 2.17.1 (**or [higher](https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core)**, since I'm tired of updating this) for your applications.
-* If you're still using Log4j 1,x, **PLEASE consider upgrading to Log4j 2.x**. Log4j 1.x is deprecated, and _there are vulnerabilities with it that nobody will fix_. ~Once I get around to it, I may even drop~ As of release 4.0.0, I have removed **appender-log4j** from this repo.
-
-  *If you REALLY need to continue using Log4j, you may use release **3.7.0**. But really: upgrade to Log4j2 for your own sake.*
+* Log4j 1.x is no longer supported. If you're still using Log4j 1.x, **PLEASE consider upgrading to Log4j 2.x**. Log4j
+  1.x is deprecated, and _there are vulnerabilities with it that nobody will fix_.
+  * If you REALLY need to continue using Log4j, you may use release **3.7.0**. But really: upgrade to Log4j2 for your 
+    own sake.
 
 ![image](https://user-images.githubusercontent.com/1897208/155896919-552ab47e-98c9-4d54-9878-d0e145bb7153.png)
 
@@ -77,13 +75,25 @@ programs using this library for both Log4j and Log4j2.
 
 ## Configuration
 ### General
-In addition to the typical appender configuration (such as layout, Threshold, etc.), these common properties control the appender in general:
+In addition to the typical appender configuration (such as layout, Threshold, etc.), these common properties control the
+    appender in general:
 *  **stagingBufferSize** -- the number of entries to collect for a batch before publishing (default is 2000).
-*  **stagingBufferAge** -- (optional) if specified, the number of *minutes* to wait before publishing a batch. If used,
-         this parameter will override the condition set by *stagingBufferSize*. The value must be >= 1.
-*  **tags** -- comma-separated tokens to associate to the log entries (used mainly for search filtering). Examples:
+*  **stagingBufferAge** -- (_optional_) if specified, the number of *minutes* to wait before publishing a batch. If 
+    used, this parameter will override the condition set by *stagingBufferSize*. The value must be >= 1.
+*  **hostName** -- (_optional_) a string to use to indicate where this log comes from. If this is not configured, by 
+         default it uses the host name where the logger is run. When set, this cannot be a blank string, or it will be
+         ignored.
+*  **tags** -- (_optional_) comma-separated tokens to associate to the log entries (used mainly for search filtering). 
+    Examples:
     *  `production,webserver`
     *  `qa,database`
+
+DO NOT specify both **stagingBufferSize** and **stagingBufferAge**. Choose the option that works best for you. Because
+there is some overhead on preparing and upload of logs, if you specify too small a value for these parameters, the 
+logger may not have enough time to do its work and eventually will cause your process to fail.
+
+How small is too small? It really depends on how often your program logs. In general, I would suggest a **minimum** of
+500 for **stagingBufferSize** and 60 seconds for **stagingBufferAge**.
 
 A sample snippet from a sample `log4j2.xml` to publish whenever 10 events are collected:
 ```
@@ -134,20 +144,23 @@ Use either:
 
 but not all three simultaneously. You will get an error from AWS if you use all three.
 
-* **s3PathStyleAccess** -- "true" to use the older Path Style Access/URL when contacting S3 (see https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html#path-style-access)
+* **s3PathStyleAccess** -- "true" to use the older Path Style Access/URL when contacting S3 (see
+  https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html#path-style-access)
 
 AWS credentials are required to interact with S3.  **NOTE** that the recommended way of configuring
 the credentials is:
   1) using roles assigned to instance profiles (when working with EC2 instances) or 
   2) creating a credentials file on the computer running the program as 
-  `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials` (see https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/credentials.html#credentials-file-format)
+  `%USERPROFILE%\.aws\credentials` (Windows) or `~/.aws/credentials` (see
+  https://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/credentials.html#credentials-file-format)
 
 If the above methods are not possible for your situation, these properties can also be overridden in 
 the optional Log4j configuration:
 * **s3AwsKey** and **s3AwsSecret** -- access and secret keys.  
 * **s3AwsSessionToken** -- session token for short-lived credentials.
 
-When these properties are present in the configuration, they *take precedence over* the default sources in the credential chain as described earlier.
+When these properties are present in the configuration, they *take precedence over* the default sources in the
+credential chain as described earlier.
 
 A sample snippet (with the optional s3AwsKey and s3AwsSecret properties set):
 ```
@@ -174,9 +187,13 @@ logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 
 Content configurations
 * **s3Compression** -- if set to "true," then contents will be GZIP'ed before publishing into S3
-* **s3KeyGzSuffixEnabled** -- if set to "true," then the s3 key will have a `.gz` suffix when `s3Compression` is enabled. (If `s3Compression` is not "true," this is ignored.)  
-* **s3SseKeyType** -- if set to "SSE_S3," then contents published will be flagged to use SSE-S3 encryption (see https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
-* **s3StorageClass** -- the S3 storage class associated with sent objects (e.g. "standard", "glacier"), if not set then "standard" storage class will be used as default (see https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html)
+* **s3KeyGzSuffixEnabled** -- if set to "true," then the s3 key will have a `.gz` suffix when `s3Compression` is 
+  enabled. (If `s3Compression` is not "true," this is ignored.)  
+* **s3SseKeyType** -- if set to "SSE_S3," then contents published will be flagged to use SSE-S3 encryption (see 
+  https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html)
+* **s3StorageClass** -- the S3 storage class associated with sent objects (e.g. "standard", "glacier"), if not set then
+  "standard" storage class will be used as default (see
+  https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html)
 
 ### Azure Blob
 These properties (**please use your own values**) control how the logs will be stored in Azure Blob Storage:
@@ -184,7 +201,8 @@ These properties (**please use your own values**) control how the logs will be s
 * **azureBlobNamePrefix** -- the prefix for the blob name.
 * **azureBlobCompressionEnabled** -- if set to "true," then contents will be GZIP'ed before publishing.
 * **azureStorageConnectionString** -- optional value for the connection string for connecting to Azure. See note below.
-* **azureBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when `azureBlobCompressionEnabled` is enabled. (If `azureBlobCompressionEnabled` is not "true," this is ignored.)
+* **azureBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when 
+  `azureBlobCompressionEnabled` is enabled. (If `azureBlobCompressionEnabled` is not "true," this is ignored.)
 
 ```
 <Configuration status="INFO">
@@ -209,7 +227,8 @@ logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
 
 Notes:
-* See https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata for rules on names.
+* See https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata 
+  for rules on names.
 * From various examples online, the preferred way to establish the Azure connection string is to set the environment
   variable `AZURE_STORAGE_CONNECTION_STRING` on the hosts running your code. 
   However, you can also set the `azureStorageConnectionString` property for local testing.
@@ -224,7 +243,8 @@ These properties (**please use your own values**) control how the logs will be s
 * **gcpStorageBlobNamePrefix** -- the prefix for the blob name.
 * **gcpStorageCompressionEnabled** -- if set to "true," then contents will be GZIP'ed before publishing. 
   The default is "false."
-* **gcpStorageBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when `gcpStorageCompressionEnabled` is enabled. (If `gcpStorageCompressionEnabled` is not "true," this is ignored.)
+* **gcpStorageBlobNameGzSuffixEnabled** -- if set to "true," then the blob name will have a `.gz` suffix when 
+  `gcpStorageCompressionEnabled` is enabled. (If `gcpStorageCompressionEnabled` is not "true," this is ignored.)
 
 
 Just as in the case with AWS S3, there is an [extensive authentication process](https://github.com/googleapis/google-cloud-java#authentication) and list of options.
@@ -311,7 +331,8 @@ There are four properties for Elasticsearch, all but one are optional:
 
   The scheme/protocol is `http://` by default, but you can override this by
   explicitly including it in the value (e.g. `https://localhost:9200`).
-* **elasticSearchPublishHelperClass** -- optional fully-qualified name of the class (on the runtime classpath, of course) implementing `IElasticsearchPublishHelper` that will perform publishing to Elasticsearch 
+* **elasticSearchPublishHelperClass** -- optional fully-qualified name of the class (on the runtime classpath, of 
+  course) implementing `IElasticsearchPublishHelper` that will perform publishing to Elasticsearch 
 
 ```
 <Configuration status="INFO">
@@ -325,7 +346,9 @@ There are four properties for Elasticsearch, all but one are optional:
 ```
 
 ## Solr Integration
-A new core should be created for the log events.  The setting up of Apache Solr and the setting up of a core are outside the scope of this file.  However, a sample template for a `schema.xml` that can be used is included in this repo as `/misc/solr/schema.xml`.
+A new core should be created for the log events.  The setting up of Apache Solr and the setting up of a core are 
+outside the scope of this file.  However, a sample template for a `schema.xml` that can be used is included in this 
+repo as `/misc/solr/schema.xml`.
 
 Each log event will be indexed as a Solr document.  The "id" property for each document 
 will follow the format:
@@ -346,9 +369,11 @@ String s3Key = id.substring(0, id.indexOf("-"));
 ```
 
 ## Elasticsearch Integration
-A new index should be created for the log events.  The setting up of Elasticsearch and the index are outside the scope of this file.  However, a sample template for the index schema that can be used is included in this repo as `/misc/elasticsearch/logindex.json`.
-This schema should be installed before any log entries are added. A typical PUT to `/<elasticsearch host>:9200/<index>` with
-the body of the JSON should be sufficient. 
+A new index should be created for the log events.  The setting up of Elasticsearch and the index are outside the scope 
+of this file.  However, a sample template for the index schema that can be used is included in this repo as 
+`/misc/elasticsearch/logindex.json`.
+This schema should be installed before any log entries are added. A typical PUT to `/<elasticsearch host>:9200/<index>`
+with the body of the JSON should be sufficient. 
 
 Each log event will be indexed as a document.  The "id" property for each document 
 will follow the format:
