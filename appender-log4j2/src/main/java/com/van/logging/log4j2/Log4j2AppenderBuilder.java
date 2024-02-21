@@ -138,6 +138,8 @@ public class Log4j2AppenderBuilder
     @Override
     public Log4j2Appender build() {
         try {
+            VansLogger.logger.info("Building new Log4j2Appender...");
+            printStackTrace();
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
             LoggingEventCache cache = new LoggingEventCache(
                 cacheName, createCacheMonitor(), createCachePublisher(), verbose);
@@ -340,5 +342,14 @@ public class Log4j2AppenderBuilder
             VansLogger.logger.info(String.format("Using cache monitor: %s", monitor));
         }
         return monitor;
+    }
+
+    private void printStackTrace() {
+        System.out.println("Printing stack trace:");
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        for (int i = 1; i < elements.length; i++) {
+            StackTraceElement s = elements[i];
+            System.out.println("\tat " + s.getClassName() + "." + s.getMethodName() + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
+        }
     }
 }

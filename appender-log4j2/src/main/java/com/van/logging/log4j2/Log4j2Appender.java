@@ -11,6 +11,8 @@ import org.apache.logging.log4j.core.config.plugins.*;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The composite appender used to route log messages to various outlets. The name will have "CVL" prepended for
@@ -37,16 +39,9 @@ public class Log4j2Appender extends AbstractAppender {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
         this.eventCache = eventCache;
-
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (this.verbose) {
-                VansLogger.logger.info("Publishing staging log on shutdown...");
-            }
-            eventCache.flushAndPublish(true);
             try {
-                if (this.verbose) {
-                    VansLogger.logger.info("Shutting down LoggingEventCache...");
-                }
+                close();
                 LoggingEventCache.shutDown();
             } catch (InterruptedException e) {
                 if (this.verbose) {
@@ -61,6 +56,7 @@ public class Log4j2Appender extends AbstractAppender {
         return this;
     }
 
+    @Override
     public void append(LogEvent logEvent) {
         try {
             eventCache.add(mapToEvent(logEvent));
@@ -72,6 +68,44 @@ public class Log4j2Appender extends AbstractAppender {
                 String.format("Log4j2Appender says: %s", logEvent.getMessage().getFormattedMessage())
             );
         }
+    }
+
+    @Override
+    protected boolean stop(long timeout, TimeUnit timeUnit, boolean changeLifeCycleState) {
+        VansLogger.logger.info("stop(timeout, timeunit, changeLifeCycleState)");
+        return super.stop(timeout, timeUnit, changeLifeCycleState);
+    }
+
+    @Override
+    protected void setStopped() {
+        VansLogger.logger.info("setStopped()");
+        super.setStopped();
+    }
+
+    @Override
+    protected void setStopping() {
+        VansLogger.logger.info("setStopping()");
+        super.setStopping();
+    }
+
+    @Override
+    protected boolean stop(Future<?> future) {
+        VansLogger.logger.info("stop(future)");
+        return super.stop(future);
+    }
+
+    @Override
+    public void stop() {
+        VansLogger.logger.info("stop()");
+        close();
+        super.stop();
+    }
+
+    @Override
+    public boolean stop(long timeout, TimeUnit timeUnit) {
+        VansLogger.logger.info("stop(timeout, timeunit)");
+        close();
+        return super.stop(timeout, timeUnit);
     }
 
     Event mapToEvent(LogEvent event) {
@@ -87,5 +121,16 @@ public class Log4j2Appender extends AbstractAppender {
             message
         );
         return mapped;
+    }
+
+    /**
+     * Closes resources used by this appender instance.
+     */
+    private void close() {
+        if (this.verbose) {
+            VansLogger.logger.info("Publishing staging log on close...");
+        }
+        eventCache.flushAndPublish(true);
+        eventCache.stop();
     }
 }
