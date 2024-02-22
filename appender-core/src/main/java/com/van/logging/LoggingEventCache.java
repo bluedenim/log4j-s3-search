@@ -280,6 +280,7 @@ public class LoggingEventCache implements IFlushAndPublish {
                 success = success & terminated;
             } catch (Exception ex) {
                 VansLogger.logger.error(String.format("LoggingEventCache: error shutting down %s", executorService), ex);
+                success = false;
             }
         }
 
