@@ -5,7 +5,6 @@ import junit.framework.TestCase;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 
-import static org.apache.logging.log4j.core.AbstractLifeCycle.DEFAULT_STOP_TIMEUNIT;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
@@ -23,7 +22,7 @@ public class Log4j2AppenderTest extends TestCase {
         expect(loggingEventCache.flushAndPublish(true)).andReturn(null);
         expect(loggingEventCache.stop()).andReturn(true);
         replay(loggingEventCache);
-        appender.stop(0, DEFAULT_STOP_TIMEUNIT);
+        appender.stop();
         verify(loggingEventCache);
     }
 }

@@ -7,12 +7,11 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.core.config.plugins.*;
+import org.apache.logging.log4j.core.config.plugins.Plugin;
+import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The composite appender used to route log messages to various outlets. The name will have "CVL" prepended for
@@ -71,41 +70,9 @@ public class Log4j2Appender extends AbstractAppender {
     }
 
     @Override
-    protected boolean stop(long timeout, TimeUnit timeUnit, boolean changeLifeCycleState) {
-        VansLogger.logger.info("stop(timeout, timeunit, changeLifeCycleState)");
-        return super.stop(timeout, timeUnit, changeLifeCycleState);
-    }
-
-    @Override
-    protected void setStopped() {
-        VansLogger.logger.info("setStopped()");
-        super.setStopped();
-    }
-
-    @Override
-    protected void setStopping() {
-        VansLogger.logger.info("setStopping()");
-        super.setStopping();
-    }
-
-    @Override
-    protected boolean stop(Future<?> future) {
-        VansLogger.logger.info("stop(future)");
-        return super.stop(future);
-    }
-
-    @Override
     public void stop() {
-        VansLogger.logger.info("stop()");
         close();
         super.stop();
-    }
-
-    @Override
-    public boolean stop(long timeout, TimeUnit timeUnit) {
-        VansLogger.logger.info("stop(timeout, timeunit)");
-        close();
-        return super.stop(timeout, timeUnit);
     }
 
     Event mapToEvent(LogEvent event) {

@@ -1,6 +1,12 @@
 package com.van.logging.log4j2;
 
-import com.van.logging.*;
+import com.van.logging.BufferPublisher;
+import com.van.logging.CapacityBasedBufferMonitor;
+import com.van.logging.IBufferMonitor;
+import com.van.logging.IBufferPublisher;
+import com.van.logging.LoggingEventCache;
+import com.van.logging.TimePeriodBasedBufferMonitor;
+import com.van.logging.VansLogger;
 import com.van.logging.aws.S3Configuration;
 import com.van.logging.aws.S3PublishHelper;
 import com.van.logging.azure.BlobConfiguration;
@@ -18,7 +24,11 @@ import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
 import org.apache.logging.log4j.core.filter.AbstractFilter;
 
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -138,8 +148,6 @@ public class Log4j2AppenderBuilder
     @Override
     public Log4j2Appender build() {
         try {
-            VansLogger.logger.info("Building new Log4j2Appender...");
-            printStackTrace();
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
             LoggingEventCache cache = new LoggingEventCache(
                 cacheName, createCacheMonitor(), createCachePublisher(), verbose);
@@ -342,14 +350,5 @@ public class Log4j2AppenderBuilder
             VansLogger.logger.info(String.format("Using cache monitor: %s", monitor));
         }
         return monitor;
-    }
-
-    private void printStackTrace() {
-        System.out.println("Printing stack trace:");
-        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-        for (int i = 1; i < elements.length; i++) {
-            StackTraceElement s = elements[i];
-            System.out.println("\tat " + s.getClassName() + "." + s.getMethodName() + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
-        }
     }
 }
