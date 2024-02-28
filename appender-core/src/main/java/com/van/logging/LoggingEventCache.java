@@ -1,10 +1,19 @@
 package com.van.logging;
 
-import org.apache.logging.log4j.core.LogEvent;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -67,25 +76,7 @@ public class LoggingEventCache implements IFlushAndPublish {
         LoggingEventCache instance = instances.poll();
         while (null != instance) {
             try {
-                ExecutorService executorService =
-                    (ExecutorService) instance.executorServiceRef.getAndSet(null);
-                if (null != executorService) {
-                    if (instance.verbose) {
-                        VansLogger.logger.info(String.format("LoggingEventCache %s: shutting down", instance));
-                    }
-                    executorService.shutdown();
-                    boolean terminated = executorService.awaitTermination(
-                        SHUTDOWN_TIMEOUT_SECS,
-                        TimeUnit.SECONDS
-                    );
-                    if (instance.verbose) {
-                        VansLogger.logger.info(String.format(
-                            "LoggingEventCache: Executor service terminated within timeout: %s", terminated
-                        ));
-                    }
-                    success = success & terminated;
-                }
-
+                instance.stop();
                 if (null != instance.cacheMonitor) {
                     instance.cacheMonitor.shutDown();
                 }
@@ -265,6 +256,35 @@ public class LoggingEventCache implements IFlushAndPublish {
             success = false;
         }
         return CompletableFuture.completedFuture(success);
+    }
+
+    public boolean stop() {
+        boolean success = true;
+        final ExecutorService executorService = executorServiceRef.getAndSet(null);
+
+        if (executorService != null && !executorService.isShutdown()) {
+            try {
+                if (verbose) {
+                    VansLogger.logger.info(String.format("LoggingEventCache %s: shutting down", executorService));
+                }
+                executorService.shutdown();
+                boolean terminated = executorService.awaitTermination(
+                        SHUTDOWN_TIMEOUT_SECS,
+                        TimeUnit.SECONDS
+                );
+                if (verbose) {
+                    VansLogger.logger.info(String.format(
+                            "LoggingEventCache: Executor service terminated within timeout: %s", terminated
+                    ));
+                }
+                success = success & terminated;
+            } catch (Exception ex) {
+                VansLogger.logger.error(String.format("LoggingEventCache: error shutting down %s", executorService), ex);
+                success = false;
+            }
+        }
+
+        return success;
     }
 }
 

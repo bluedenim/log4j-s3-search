@@ -7,7 +7,8 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.core.config.plugins.*;
+import org.apache.logging.log4j.core.config.plugins.Plugin;
+import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -37,16 +38,9 @@ public class Log4j2Appender extends AbstractAppender {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
         this.eventCache = eventCache;
-
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (this.verbose) {
-                VansLogger.logger.info("Publishing staging log on shutdown...");
-            }
-            eventCache.flushAndPublish(true);
             try {
-                if (this.verbose) {
-                    VansLogger.logger.info("Shutting down LoggingEventCache...");
-                }
+                close();
                 LoggingEventCache.shutDown();
             } catch (InterruptedException e) {
                 if (this.verbose) {
@@ -61,6 +55,7 @@ public class Log4j2Appender extends AbstractAppender {
         return this;
     }
 
+    @Override
     public void append(LogEvent logEvent) {
         try {
             eventCache.add(mapToEvent(logEvent));
@@ -72,6 +67,12 @@ public class Log4j2Appender extends AbstractAppender {
                 String.format("Log4j2Appender says: %s", logEvent.getMessage().getFormattedMessage())
             );
         }
+    }
+
+    @Override
+    public void stop() {
+        close();
+        super.stop();
     }
 
     Event mapToEvent(LogEvent event) {
@@ -87,5 +88,16 @@ public class Log4j2Appender extends AbstractAppender {
             message
         );
         return mapped;
+    }
+
+    /**
+     * Closes resources used by this appender instance.
+     */
+    private void close() {
+        if (this.verbose) {
+            VansLogger.logger.info("Publishing staging log on close...");
+        }
+        eventCache.flushAndPublish(true);
+        eventCache.stop();
     }
 }
