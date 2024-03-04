@@ -77,9 +77,6 @@ public class LoggingEventCache implements IFlushAndPublish {
         while (null != instance) {
             try {
                 instance.stop();
-                if (null != instance.cacheMonitor) {
-                    instance.cacheMonitor.shutDown();
-                }
             } catch (Exception ex) {
                 VansLogger.logger.error(String.format("LoggingEventCache: error shutting down %s", instance), ex);
             } finally {
@@ -282,6 +279,10 @@ public class LoggingEventCache implements IFlushAndPublish {
                 VansLogger.logger.error(String.format("LoggingEventCache: error shutting down %s", executorService), ex);
                 success = false;
             }
+        }
+
+        if (null != cacheMonitor) {
+            cacheMonitor.shutDown();
         }
 
         return success;
