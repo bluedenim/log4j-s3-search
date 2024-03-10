@@ -83,7 +83,9 @@ public class TimePeriodBasedBufferMonitor<T> implements IBufferMonitor {
         if (this.verbose) {
             VansLogger.logger.info("TimePeriodBasedBufferMonitor: shutting down.");
         }
-        this.scheduledExecutorService.shutdownNow();
+        if (!this.scheduledExecutorService.isShutdown()) {
+            this.scheduledExecutorService.shutdownNow();
+        }
     }
 
     @Override
