@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>appender-log4j2</artifactId>
-    <version>5.1.1-SNAPSHOT</version>
+    <version>5.2.2-SNAPSHOT</version>
     <name>appender-log4j2</name>
     <description>Log4j 2.x appender to capture and send log events to remote storage (AWS S3, Azure Blob Storage, Google Cloud Storage) and search (Solr, Elasticsearch)</description>
     <url>https://github.com/bluedenim/log4j-s3-search</url>
@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.therealvan</groupId>
         <artifactId>log4j-s3-search</artifactId>
-        <version>5.1.0</version>
+        <version>5.2.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.therealvan</groupId>
             <artifactId>appender-core</artifactId>
-            <version>5.1.1-SNAPSHOT</version>
+            <version>5.2.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.amazonaws</groupId>

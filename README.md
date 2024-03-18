@@ -28,14 +28,12 @@ The [packages in MVN Repo](https://mvnrepository.com/search?q=therealvan) should
 correct Java version (see below).
 
 
-| Release / tag   | JSDK version                                                                                   |
-|-----------------|------------------------------------------------------------------------------------------------|
-| 2.x and earlier | [Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html) |
-| 3.x             | [Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)      |
+| Release / tag     | JSDK version                                                                                   |
+|-------------------|------------------------------------------------------------------------------------------------|
+| 2.x and earlier   | [Java SDK (JDK) 8](https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html) |
+| 5.2.1 and earlier | [Java SDK (JDK) 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)      |
+| 5.2.2+            | [OpenJDK 21](https://openjdk.org/projects/jdk/21/)                                             |
 
-Note that using [Java SDK (JDK) 14](https://docs.oracle.com/en/java/javase/14/) to build the projects locally will
-have errors. You can try basing your work on [PR 59](https://github.com/bluedenim/log4j-s3-search/pull/59) if you
-really need to build with the newer JDKs.
 
 ## Packages
 The project is broken up into several packages:
