@@ -99,7 +99,7 @@ public class Log4j2Appender extends AbstractAppender {
         if (this.verbose) {
             VansLogger.logger.info("Publishing staging log on close...");
         }
-        
+
         // Deregister shutdown hook to avoid unbounded growth of registered hooks
         Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
 
