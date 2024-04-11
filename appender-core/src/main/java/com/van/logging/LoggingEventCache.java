@@ -285,6 +285,11 @@ public class LoggingEventCache implements IFlushAndPublish {
             cacheMonitor.shutDown();
         }
 
+        if (null != instances) {
+            // Remove the stopped cache from the queue to avoid a leak
+            instances.remove(this);
+        }
+
         return success;
     }
 }

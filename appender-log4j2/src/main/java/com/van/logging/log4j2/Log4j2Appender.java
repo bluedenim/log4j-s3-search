@@ -21,6 +21,7 @@ import java.util.Objects;
 public class Log4j2Appender extends AbstractAppender {
 
     private final LoggingEventCache eventCache;
+    private final Thread shutdownHook;
     private boolean verbose = false;
 
     @PluginBuilderFactory
@@ -38,7 +39,7 @@ public class Log4j2Appender extends AbstractAppender {
         super(name, filter, layout, ignoreExceptions);
         Objects.requireNonNull(eventCache);
         this.eventCache = eventCache;
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        this.shutdownHook = new Thread(() -> {
             try {
                 close();
                 LoggingEventCache.shutDown();
@@ -47,7 +48,8 @@ public class Log4j2Appender extends AbstractAppender {
                     VansLogger.logger.error("InterruptedException during LoggingEventCache.shutDown", e);
                 }
             }
-        }));
+        });
+        Runtime.getRuntime().addShutdownHook(this.shutdownHook);
     }
 
     public Log4j2Appender setVerbose(boolean verbose) {
@@ -76,7 +78,7 @@ public class Log4j2Appender extends AbstractAppender {
     }
 
     Event mapToEvent(LogEvent event) {
-        String message = null;
+        String message;
         if (null != getLayout()) {
             message = getLayout().toSerializable(event).toString();
         } else {
@@ -97,6 +99,11 @@ public class Log4j2Appender extends AbstractAppender {
         if (this.verbose) {
             VansLogger.logger.info("Publishing staging log on close...");
         }
+        
+        // Deregister shutdown hook to avoid unbounded growth of registered hooks
+        Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
+
+        // Flush and stop the cache associated with this appender
         eventCache.flushAndPublish(true);
         eventCache.stop();
     }
