@@ -105,7 +105,7 @@ public class Log4j2Appender extends AbstractAppender {
             Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
         } catch (IllegalStateException e) {
             // Swallow the exception
-            VansLogger.logger.warn("Already shutting down. Cannot remove shutdown hook.")
+            VansLogger.logger.warn("Already shutting down. Cannot remove shutdown hook.");
         } catch (final Exception e) {
             // Swallow the exception cause
             VansLogger.logger.error("Error while removing shutdown hook", e);
