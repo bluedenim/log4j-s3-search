@@ -101,34 +101,18 @@ public class Log4j2Appender extends AbstractAppender {
         }
 
         // Deregister shutdown hook to avoid unbounded growth of registered hooks
-        if (!isShuttingDown()) {
-            try {
-                Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
-            } catch (final Exception e) {
-                // Swallow the exception cause
-                VansLogger.logger.error("Error while removing shutdown hook", e);
-            }
+        try {
+            Runtime.getRuntime().removeShutdownHook(this.shutdownHook);
+        } catch (IllegalStateException e) {
+            // Swallow the exception
+            VansLogger.logger.warn("Already shutting down. Cannot remove shutdown hook.")
+        } catch (final Exception e) {
+            // Swallow the exception cause
+            VansLogger.logger.error("Error while removing shutdown hook", e);
         }
 
         // Flush and stop the cache associated with this appender
         eventCache.flushAndPublish(true);
         eventCache.stop();
-    }
-
-    /**
-     * Tests if the application is currently in the process of shutting down to avoid an
-     * {@link IllegalStateException} when attempting to deregister the real shutdown hook(s).
-     * @return {@code true} if the JVM  is in the processing of stopping or {@code false} otherwise.
-     */
-    private boolean isShuttingDown() {
-        try {
-            final Thread dummyHook = new Thread();
-            Runtime.getRuntime().addShutdownHook(dummyHook);
-            Runtime.getRuntime().removeShutdownHook(dummyHook);
-        } catch (final Exception e) {
-            return true;
-        }
-
-        return false;
     }
 }
