@@ -1,5 +1,3 @@
-version: '3'
-
 # This docker-compose.yml configures two services to run locally to support local instances of Solr and Elasticsearch
 # The instances can be used for development/testing.
 
