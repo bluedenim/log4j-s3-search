@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.therealvan</groupId>
         <artifactId>log4j-s3-search</artifactId>
-        <version>5.3.2</version>
+        <version>5.3.3-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -22,15 +22,19 @@
         <dependency>
             <groupId>com.therealvan</groupId>
             <artifactId>appender-core</artifactId>
-            <version>5.3.2</version>
+            <version>5.3.3-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.amazonaws</groupId>
                     <artifactId>aws-java-sdk-s3</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>azure-storage</artifactId>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-storage-blob</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.azure</groupId>
+                    <artifactId>azure-core-http-netty</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.google.cloud</groupId>
