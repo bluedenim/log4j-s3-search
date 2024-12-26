@@ -52,6 +52,9 @@ public class Log4j2AppenderBuilder
     @PluginBuilderAttribute
     private String hostName;
 
+    @PluginBuilderAttribute
+    private boolean excludeHostInLogName = false;
+
     // S3 properties
     @PluginBuilderAttribute
     private String s3Bucket;
@@ -150,7 +153,7 @@ public class Log4j2AppenderBuilder
         try {
             String cacheName = UUID.randomUUID().toString().replaceAll("-","");
             LoggingEventCache cache = new LoggingEventCache(
-                cacheName, createCacheMonitor(), createCachePublisher(), verbose);
+                cacheName, createCacheMonitor(), createCachePublisher(excludeHostInLogName), verbose);
             Log4j2Appender appender = new Log4j2Appender(
                 getName(), getFilter(), getLayout(),
                 true, cache);
@@ -274,14 +277,14 @@ public class Log4j2AppenderBuilder
         return Optional.ofNullable(config);
     }
 
-    IBufferPublisher createCachePublisher() throws UnknownHostException {
+    IBufferPublisher createCachePublisher(boolean excludeHostInLogName) throws UnknownHostException {
         // Use the configured host name if any.
         String hostNameForPublisher = this.hostName;
         if (!StringUtils.isTruthy(hostNameForPublisher)) {
             java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
             hostNameForPublisher = addr.getHostName();
         }
-        BufferPublisher publisher = new BufferPublisher(hostNameForPublisher, parseTags(tags));
+        BufferPublisher publisher = new BufferPublisher(hostNameForPublisher, parseTags(tags), excludeHostInLogName);
         PatternedPathAdjuster pathAdjuster = new PatternedPathAdjuster();
 
         getS3ConfigIfEnabled().ifPresent(config -> {

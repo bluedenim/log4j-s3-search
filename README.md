@@ -81,6 +81,7 @@ In addition to the typical appender configuration (such as layout, Threshold, et
 *  **hostName** -- (_optional_) a string to use to indicate where this log comes from. If this is not configured, by 
          default it uses the host name where the logger is run. When set, this cannot be a blank string, or it will be
          ignored.
+*  **excludeHostFromLogName** -- (_optional_) if True, then the log name as uploaded to storage will not contain the host name.
 *  **tags** -- (_optional_) comma-separated tokens to associate to the log entries (used mainly for search filtering). 
     Examples:
     *  `production,webserver`
@@ -183,6 +184,10 @@ e.g.
 logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
 
+However, if the `excludeHostInLogName` property is set to `true`, then the `{hostname}` will NOT be included in
+the key. For the example above, the key would be `{s3Path}/yyyyMMddHH24mmss_{UUID w/ "-" stripped}`.
+
+
 Content configurations
 * **s3Compression** -- if set to "true," then contents will be GZIP'ed before publishing into S3
 * **s3KeyGzSuffixEnabled** -- if set to "true," then the s3 key will have a `.gz` suffix when `s3Compression` is 
@@ -223,6 +228,10 @@ e.g.
 
 logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
+
+However, if the `excludeHostInLogName` property is set to `true`, then the `{hostname}` will NOT be included in
+the blob name. For the example above, the key would be `{azureBlobNamePrefix}/yyyyMMddHH24mmss_{UUID w/ "-" stripped}`.
+
 
 Notes:
 * See https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata 
@@ -275,6 +284,10 @@ e.g.
 
 logs/myApplication/20150327081000_localhost_6187f4043f2449ccb4cbd3a7930d1130
 ```
+
+However, if the `excludeHostInLogName` property is set to `true`, then the `{hostname}` will NOT be included in
+the blob name. For the example above, the key would be `{gcpStorageBlobNamePrefix}/yyyyMMddHH24mmss_{UUID w/ "-" stripped}`.
+
 
 ## Advanced Cloud Storage Configuration
 ### Dynamic Path/Prefix Pattern

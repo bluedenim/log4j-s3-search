@@ -75,7 +75,7 @@ public class Log4j2AppenderBuilderTest extends TestCase {
         }
         PublishContext context = null;
         try {
-            IBufferPublisher publisher = builder.createCachePublisher();
+            IBufferPublisher publisher = builder.createCachePublisher(false);
             context = publisher.startPublish("CACHENAME");
         } catch (UnknownHostException e) {
             fail(e.getMessage());
@@ -96,11 +96,34 @@ public class Log4j2AppenderBuilderTest extends TestCase {
         String hostName = addr.getHostName();
 
         try {
-            IBufferPublisher publisher = builder.createCachePublisher();
+            IBufferPublisher publisher = builder.createCachePublisher(false);
             context = publisher.startPublish("CACHENAME");
         } catch (UnknownHostException e) {
             fail(e.getMessage());
         }
         assertEquals(hostName, context.getHostName());
+        assertTrue(context.getCacheName().contains(hostName));
+    }
+
+    public void testCreatePublisherWithSimpleCacheName() {
+        Log4j2AppenderBuilder builder = new Log4j2AppenderBuilder();
+        PublishContext context = null;
+        String cacheName = "CACHENAME";
+
+        java.net.InetAddress addr = null;
+        try {
+            addr = java.net.InetAddress.getLocalHost();
+        } catch (UnknownHostException e) {
+            fail(e.getMessage());
+        }
+        String hostName = addr.getHostName();
+
+        try {
+            IBufferPublisher publisher = builder.createCachePublisher(true);
+            context = publisher.startPublish(cacheName);
+        } catch (UnknownHostException e) {
+            fail(e.getMessage());
+        }
+        assertFalse(context.getCacheName().contains(hostName));
     }
 }
