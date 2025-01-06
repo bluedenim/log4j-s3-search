@@ -15,19 +15,37 @@ import java.util.List;
 public class BufferPublisher implements IBufferPublisher {
     private final String hostName;
     private final String[] tags;
+    private final boolean excludeHostInLogName;
 
     private List<IPublishHelper> helpers =
         new LinkedList<>();
 
     public BufferPublisher(String hostName, String[] tags) {
+        this(hostName, tags, false);
+    }
+
+    /**
+     * Creates a new instance of the publisher.
+     *
+     * @param hostName - the host name (to be used as part of the cache name)
+     * @param tags - additional tags to include when publishing to search engines
+     * @param excludeHostInLogName - if False, the host name will not be included in published cache name
+     */
+    public BufferPublisher(String hostName, String[] tags, boolean excludeHostInLogName) {
         this.hostName = hostName;
         this.tags = tags;
+        this.excludeHostInLogName = excludeHostInLogName;
     }
 
     public PublishContext startPublish(String cacheName) {
         String namespacedCacheName = composeNamespacedCacheName(cacheName);
 		if (VansLogger.logger.isDebugEnabled()) {
-            VansLogger.logger.debug(String.format("BEGIN publishing %s...", namespacedCacheName));
+            VansLogger.logger.debug(
+                String.format(
+                    "BEGIN publishing %s. excludeHostInLogName is %s...",
+                    namespacedCacheName, excludeHostInLogName
+                )
+            );
         }
         PublishContext context = new PublishContext(namespacedCacheName,
             hostName, tags);
@@ -45,8 +63,12 @@ public class BufferPublisher implements IBufferPublisher {
 
     String composeNamespacedCacheName(String rawCacheName) {
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-        return String.format("%s_%s_%s", df.format(new Date()),
-            hostName, rawCacheName);
+        if (this.excludeHostInLogName) {
+            return String.format("%s_%s", df.format(new Date()), rawCacheName);
+        } else {
+            return String.format("%s_%s_%s", df.format(new Date()),
+                hostName, rawCacheName);
+        }
     }
 
     public void publish(PublishContext context, int sequence, Event event) {
