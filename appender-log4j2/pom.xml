@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.therealvan</groupId>
         <artifactId>log4j-s3-search</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.5.0</version>
     </parent>
 
     <properties>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.therealvan</groupId>
             <artifactId>appender-core</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>5.5.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.amazonaws</groupId>
