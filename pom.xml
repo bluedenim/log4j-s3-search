@@ -3,7 +3,7 @@
     <groupId>com.therealvan</groupId>
     <artifactId>log4j-s3-search</artifactId>
     <packaging>pom</packaging>
-    <version>5.5.0</version>
+    <version>5.5.1-SNAPSHOT</version>
     <name>log4j-s3-search</name>
     <description>Parent POM for the log4j-s3-search project and used by appender-core and appender-log4j2 projects.</description>
     <url>https://github.com/bluedenim/log4j-s3-search</url>
@@ -171,7 +171,7 @@
         <connection>scm:git:git://github.com/dexecutor/dependent-tasks-executor.git</connection>
         <developerConnection>scm:git:git@github.com:dexecutor/dexecutor.git</developerConnection>
         <url>https://github.com/dexecutor/dependent-tasks-executor</url>
-      <tag>log4j-s3-search-5.5.0</tag>
+      <tag>HEAD</tag>
   </scm>
     <profiles>
         <profile>
