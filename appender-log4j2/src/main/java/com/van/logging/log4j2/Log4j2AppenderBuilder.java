@@ -38,113 +38,148 @@ public class Log4j2AppenderBuilder
 
     // general properties
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private boolean verbose = false;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String tags;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private int stagingBufferSize = 2000;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private int stagingBufferAge = 0;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String hostName;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private boolean excludeHostInLogName = false;
 
     // S3 properties
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3Bucket;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3Region;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3Path;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3AwsKey;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3AwsSecret;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3AwsSessionToken = null;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3ServiceEndpoint;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3SigningRegion;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3Compression;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3KeyGzSuffixEnabled;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3SseKeyType;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3CannedAcl;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private boolean s3PathStyleAccess;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String s3StorageClass;
 
     // Azure blob properties
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String azureStorageConnectionString;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String azureBlobContainer;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String azureBlobNamePrefix;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String azureBlobCompressionEnabled;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String azureBlobNameGzSuffixEnabled;
 
     // GCP Storage properties
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String gcpStorageBucket;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String gcpStorageBlobNamePrefix;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String gcpStorageCompressionEnabled;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String gcpStorageBlobNameGzSuffixEnabled;
 
     // Solr properties
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String solrUrl;
 
     // Elasticsearch properties
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String elasticsearchCluster;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String elasticsearchIndex;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String elasticsearchType;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String elasticsearchHosts;
 
     @PluginBuilderAttribute
+    @SuppressWarnings("log4j.public.setter")
     private String elasticSearchPublishHelperClass;
 
 
