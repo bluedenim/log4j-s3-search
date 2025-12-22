@@ -96,6 +96,35 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!--
+                          ~ Explicitly list the annotation processors for the default compile execution.
+                          ~ This is required starting with JDK 23, where annotation processors are not enabled automatically.
+                          ~ Explicit configuration also improves build reliability and clarity.
+                          ~ For more details, see: https://inside.java/2024/06/18/quality-heads-up/
+                          -->
+                        <id>default-compile</id>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <!-- Include `log4j-core` providing
+                                     1. `org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor` that generates `Log4j2Plugins.dat`
+                                     2. `org.apache.logging.log4j.core.config.plugins.processor.GraalVmProcessor` that generates the GraalVM reachability metadata file -->
+                                <path>
+                                    <groupId>org.apache.logging.log4j</groupId>
+                                    <artifactId>log4j-core</artifactId>
+                                    <version>2.25.3</version>
+                                </path>
+                            </annotationProcessorPaths>
+                            <annotationProcessors>
+                                <!-- Process sources using `PluginProcessor` to generate `Log4j2Plugins.dat` -->
+                                <processor>org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor</processor>
+                                <!-- Process sources using `GraalVmProcessor` to generate a GraalVM reachability metadata file -->
+                                <!-- <processor>org.apache.logging.log4j.core.config.plugins.processor.GraalVmProcessor</processor> -->
+                            </annotationProcessors>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
