@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.therealvan</groupId>
         <artifactId>log4j-s3-search</artifactId>
-        <version>5.5.0</version>
+        <version>5.5.1-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>com.therealvan</groupId>
             <artifactId>appender-core</artifactId>
-            <version>5.5.0</version>
+            <version>5.5.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.amazonaws</groupId>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.1</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -70,10 +70,11 @@
             <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.easymock/easymock -->
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>5.2.0</version>
+            <version>5.6.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -95,6 +96,35 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!--
+                          ~ Explicitly list the annotation processors for the default compile execution.
+                          ~ This is required starting with JDK 23, where annotation processors are not enabled automatically.
+                          ~ Explicit configuration also improves build reliability and clarity.
+                          ~ For more details, see: https://inside.java/2024/06/18/quality-heads-up/
+                          -->
+                        <id>default-compile</id>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <!-- Include `log4j-core` providing
+                                     1. `org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor` that generates `Log4j2Plugins.dat`
+                                     2. `org.apache.logging.log4j.core.config.plugins.processor.GraalVmProcessor` that generates the GraalVM reachability metadata file -->
+                                <path>
+                                    <groupId>org.apache.logging.log4j</groupId>
+                                    <artifactId>log4j-core</artifactId>
+                                    <version>${log4j.version}</version>
+                                </path>
+                            </annotationProcessorPaths>
+                            <annotationProcessors>
+                                <!-- Process sources using `PluginProcessor` to generate `Log4j2Plugins.dat` -->
+                                <processor>org.apache.logging.log4j.core.config.plugins.processor.PluginProcessor</processor>
+                                <!-- Process sources using `GraalVmProcessor` to generate a GraalVM reachability metadata file -->
+                                <!-- <processor>org.apache.logging.log4j.core.config.plugins.processor.GraalVmProcessor</processor> -->
+                            </annotationProcessors>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -127,7 +157,7 @@
                     <dependency>
                         <groupId>org.apache.maven.scm</groupId>
                         <artifactId>maven-scm-provider-gitexe</artifactId>
-                        <version>1.9.5</version>
+                        <version>2.2.1</version>
                     </dependency>
                 </dependencies>
             </plugin>
